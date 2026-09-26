@@ -6,8 +6,8 @@ Last verified September 26, 2026, 22:21 WAT. Harness prepared; application NOT s
 Current checkpoint: 01 — execution core.
 Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
 Next action: open repo in Bob, Agent mode, paste docs/bob-tasks/01-core.md.
-Last passing check: harness/Git only; no runtime tests yet.
-Latest commit: fill using git log -1 --oneline.
+Last passing check: staged diff whitespace check; logo SHA256 matches supplied original; GitHub main push verified. No runtime tests yet.
+Baseline commit: f58da4f (harness). Public repository: https://github.com/emmaGH1/Dcnstrct . Use git log -1 --oneline for the newest checkpoint.
 Bobcoins remaining: fill from Bob; latest supplied screenshot showed 40.
 
 ## Targets — September 27, Lagos/WAT
