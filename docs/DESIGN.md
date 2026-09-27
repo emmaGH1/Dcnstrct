@@ -1,5 +1,15 @@
 # Dcnstrct design contract
 
+## Current selection — pastel light with neutral journey markers
+
+User selected light cream + pastel green (proposed CTA #BDE4C2 with near-black text), superseding blue and OLED options below. Reserve pastel green mainly for CTA accents, not dark-green numbered journey nodes, selection strips or large panel fills. Use pale stone numbered markers with charcoal numbers, thin neutral connectors and a subtle lavender selected node. Preserve distinguishable textual business status indicators.
+
+Hero must have two centered desktop headline lines, with rotating pill embedded BETWEEN fixed words on second line; headline content about 80% page width. Latest generated copy proposal: Understand your app. / Follow the [journey] behind an action. This wording was introduced to satisfy placement; user has not separately approved the wording change from Understand the journey behind an action. Keep copy open for feedback. Center subtitle and primary CTA beneath. CTA: light pastel green, strong dark label, black circular arrow holder with white arrow. Remove word legend/CTA-side pause. Keep discreet accessible motion control and reduced-motion behavior.
+
+Centered navigation: Product / Resources / IBM Bob, brand left, Explore demo right. No redundant Demo navigation entry. Product/IBM Bob link to actual sections; Resources must resolve to actual repository/documentation, no fake menu destinations. Center the screenshot/video preview at 70–80% viewport width on desktop (target 75%, with suitable max-width), with clear side margins; mobile uses available width safely. The generated refined image is only approximate geometry; actual CSS and responsive review must enforce it. Retain full, roomy useful sections and standalone mascot.
+
+Latest concept .hackathon/ui-previews/landing-pastel-refined.png is a visual reference only. No invented screenshot/sidebar/metadata from generated artwork enters actual implementation. Earlier descriptions are historical; this selection controls conflicting color, markers, nav and hero geometry details.
+
 ## Latest user revision — supersedes earlier visual details below
 
 After viewing the first concepts, user rejected the teal/green theme and timid scale. Keep the cream canvas, but use a cleaner blue primary accent (proposed #006FE8) and substantially bolder ink typography. Favor the reference's confident editorial scale and spacious composition. Center two or three nav links between the product mark at left and Explore demo at right. Remove the visible hero word/color legend entirely. Do not put a prominent pause button beside Explore demo: provide a discreet accessible animation pause control near the pill or in motion preferences, plus static reduced-motion behavior.
