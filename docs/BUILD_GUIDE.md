@@ -1,75 +1,137 @@
 # Dcnstrct — start here
 
-Last verified September 27, 2026, 01:54 WAT. Checkpoint 01 automated checks pass; a separate GPT-6 Sol review is still pending per the user's model preference. A Bob follow-up is also required for two semantics gaps.
+Latest verification: GPT-6 Luna Extra High fixes for REVIEW-02 are implemented. `npm test` passes 61 tests (38 API, 23 MCP); `npm run typecheck` passes all four packages; the full root production build passes when Vite is allowed its required filesystem access; the MCP stdio smoke passes. See docs/REVIEW-02.md for the review scope. Bob IDE has not yet called the tools or saved analyses, so checkpoint 02's real Bob contribution remains pending.
 
 ## Where I am
 
-Current checkpoint: 01 review — resolve listed gaps before MCP.
+Current checkpoint: **02 MCP handoff** — implementation and transport verified; awaiting genuine IBM Bob IDE calls and two saved analyses.
 Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
-Next action: start a fresh Bob follow-up from docs/bob-tasks/02-mcp.md; ask it to fix source revision and address worker_ship coverage before MCP work.
-Last passing checks: `npm test` → 31/31 including citation allowlist/path/bounds; `npm run typecheck` → all packages clean; `npm run build` → all packages and Vite production bundle pass outside the filesystem sandbox; `git diff --check` clean.
-Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9 (core prototype; caveats documented below).
+Next action: Start a short fresh Bob task using docs/bob-tasks/02b-bob-analysis.md. Use the actual `.bob/mcp.json` server to inspect both scenario runs and save evidence-linked analyses; capture its task summary. Proceed to UI after that evidence is verified.
+Last passing checks: `npm test` → 61/61 (38 API + 23 MCP); `npm run typecheck` → all 4 packages clean; full `npm run build` passes including Vite and MCP; `npm run smoke:mcp` passes. Vite bundle: 146.68 kB (47.20 kB gzip).
+Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Checkpoint 02 commit: (pending after this Bob task — commit once session PNG is saved).
 Public repository: https://github.com/emmaGH1/Dcnstrct
 
 ## Runtime notes
 
 - SQLite: uses built-in `node:sqlite` (Node 24.16+). No native build required, no better-sqlite3.
-- DB_PATH: defaults to `packages/api/data/dcnstrct.db` (created on first run). Set `DB_PATH=:memory:` for ephemeral/test.
-- SOURCE_REVISION: defaults to `"dev"`; source edits will not invalidate recorded analyses unless configured. Fix this before saved Bob analysis.
+- DB_PATH: defaults to `packages/api/data/dcnstrct.db` (created on first run). Set `DB_PATH=:memory:` for ephemeral/test. MCP server reads the same file.
+- Source revision: full SHA-256 of the actual allowlisted source bytes, recomputed for each API run and each MCP operation. Missing source fails closed. Source edits make old runs unavailable for new explanations.
 - PORT: API defaults to `3001`. Client dev server runs on `3000` with proxy to `:3001`.
 
-## Quick start (after checkpoint 01)
+## Quick start
 
 ```sh
 npm install
-# Terminal 1
+# Terminal 1 — API server
 npm run dev -w packages/api
-# Terminal 2
+# Terminal 2 — client dev server
 npm run dev -w packages/client
 # Open http://localhost:3000
 ```
 
-## Checks (checkpoint 01)
+## Checks (checkpoint 02)
 
 ```sh
-# Run all tests
-npm run test -w packages/api
-# → 31 passed, 31 total
+# Run all tests (api + mcp)
+npm test
+# → 38 passed (packages/api) + 23 passed (packages/mcp) = 61 total
 
 # Typecheck all packages
-npm run typecheck -w packages/shared
-npm run typecheck -w packages/api
-npm run typecheck -w packages/client
-# → all pass with no output
+npm run typecheck
+# → all 4 packages pass with no output (shared, api, client, mcp)
 
-# Build shared (needed before api production build)
-npm run build -w packages/shared
+# Build the full production app, including the MCP server
+npm run build
+
+# Exercise real MCP stdio transport against an isolated temporary database
+npm run smoke:mcp
 ```
 
-Gaps at checkpoint 01 exit:
-- Normal `worker_ship` branch exists but is unreachable in the two cancellation scenarios and has no test; do not claim that behavior is verified.
-- The simulated fulfillment phase runs synchronously inside the request; it is not a separately scheduled asynchronous worker.
-- No Bob MCP session yet; analysis unavailable. Checkpoint 02 deliverable. Normal worker_ship branch is not exercised; execution is synchronous inside request. Fix or narrow the claim before submission.
+## MCP setup — connecting Bob IDE
+
+The MCP server configuration is in `.bob/mcp.json`. IBM Bob supports project-level settings in this path; when the same server name exists globally, the project-level entry takes precedence. Its `cwd: "."` and relative `DB_PATH` require opening this repository as Bob's project root.
+
+**To connect:**
+1. Open Bob IDE with this workspace (`ibm-2.0-hackathon/` as the project root).
+2. Click the **Settings** icon in the Bob panel → **MCP** tab.
+3. Click **Edit Project MCP** — this opens `.bob/mcp.json`.
+4. Confirm **Use MCP Servers** is checked and the `dcnstrct` entry shows `disabled: false`.
+5. **Start the API server first** so the SQLite DB exists: `npm run dev -w packages/api`
+6. Bob will start the MCP server as a child process using:
+   `node node_modules/tsx/dist/cli.mjs packages/mcp/src/index.ts`
+   with `DB_PATH=packages/api/data/dcnstrct.db`.
+
+**If the server does not appear in Bob's tool list:**
+- Verify Node 24.16+ is active: `node --version`
+- Check that `packages/api/data/` exists (directory is created after first API request).
+- Open Bob IDE MCP tab → check for connection errors in the server entry.
+- Smoke-test manually: `node node_modules/tsx/dist/cli.mjs packages/mcp/src/index.ts` — it should start silently (waiting for MCP protocol on stdin). Stderr shows `dcnstrct-mcp: stdio transport ready`. Any import/syntax errors appear on stderr.
+
+**Available tools once connected:**
+
+| Tool | Purpose |
+|---|---|
+| `list_runs` | List completed runs (most recent first). Optional `limit` (default 10). |
+| `get_run` | Fetch a finalized run with all validated events. Rejects unfinished runs. |
+| `get_source` | Read bounded lines from an allowlisted source file. Must include `sourceRevision` copied from the run; stale source is rejected. |
+| `save_analysis` | Persist an analysis only when run and current source revisions match, citations belong to the run, and source references are current, allowlisted and bounded. |
+
+**Using the tools — guide for a genuine Bob session:**
+
+```
+# Step 1: list completed runs (run the scenario first via the UI or API)
+list_runs(limit=5)
+# → note run IDs for cancel_preparing and cancel_shipped paths
+
+# Step 2: inspect both cancellation paths
+get_run(runId="run_<cancel_preparing_id>")
+get_run(runId="run_<cancel_shipped_id>")
+# → read events; observe job_queue→order_cancelled→worker_skip for accepted path
+# → observe policy_refuse with unchanged state for refused path
+
+# Step 3: read relevant source
+get_source(file="packages/api/src/runs.ts", startLine=<event sourceRef start>, endLine=<event sourceRef end>, sourceRevision=<run sourceRevision>)
+# Use the citation range returned by get_run; do not guess line numbers.
+
+# Step 4: save an evidence-linked analysis
+save_analysis(analysis=<JSON string matching AnalysisSchema>)
+# Required fields: schemaVersion "1", runId, scenarioFingerprint, sourceRevision
+# Copy scenarioFingerprint and sourceRevision from the get_run response — must match exactly
+# provenance.taskReference must be a real IBM Bob task reference (visible in Bob IDE task header)
+# uncertainty must be explicit where reasoning is uncertain, not null for everything
+# Schema validity alone does not prove Bob authorship — the task reference is the evidence
+```
+
+**Critical constraints (do not deviate):**
+- Do NOT invent a model ID or hosted inference API.
+- `sourceRevision` in the analysis must equal the value from `get_run` for that run exactly.
+- `scenarioFingerprint` must match. If source changed since the run, re-run the scenario first.
+- All `eventId` and `evidenceEventIds` must belong to the specific run (MCP enforces this).
+- All `sourceRefs` must be in SOURCE_ALLOWLIST with valid line bounds (MCP enforces this).
+- `provenance.delivery` must be `"recorded"` for analyses produced in this session.
+- If MCP connection cannot be verified, report the blocker — do not simulate tool calls.
+
+## Gaps at checkpoint 02 exit
+
+- No Bob MCP session yet; analysis unavailable. Genuine session is the next action.
 - UI is a minimal functional scaffold (raw event table). Checkpoint 03 deliverable.
+- Visitor reset is now run-scoped (Finding 4 resolved); global reset still accessible in dev/demo.
 
-## Targets — September 27, Lagos/WAT
+## Review findings — resolved
 
-| Target | Exit evidence |
-| --- | --- |
-| 01:50–02:00 | Bob follow-up: source revision, honest worker_ship coverage and summary capture |
-| 10:00 | Hard feature freeze target; preserve time for submission |
-| 10:00–12:30 | MCP if core is safe, then integrated UI and deployment |
-| 12:30–14:00 | Video, deck, cover, statements and public checks |
-| 14:00 | Internal submission target |
-| 16:00 | Official deadline: 15:00 UTC / 11 AM ET |
-
-Targets are not promises. If core/MCP slips, cut animations and landing extras; keep two real paths, Bob evidence and judge access. No fabricated fallback.
+| Finding | Status | What changed |
+|---|---|---|
+| F1: source identity doesn't track edits | Fixed | Source revision is SHA-256 of every allowlisted file's bytes, recomputed for each run/tool call; missing source fails closed |
+| F2: queued-work premise not represented | Fixed | Job inserted as `queued` **before** `updateOrderStatus` cancel; worker extracted to `runWorkerPhase()` for independent testability |
+| F3a: shipping event claims absent state change | Fixed | `updateOrderStatus(db, oId, "shipped", ...)` called and verified before `worker_ship` emitted |
+| F3b: DB status-read uses wrong kind | Fixed | Read event uses `kind: "worker_status_read"` (role `db_read`), not `"worker_skip"` |
+| F4: reset is global and failure hidden | Fixed | `/api/demo/reset` accepts `{ runId }` for visitor-scoped wipe; client checks response status |
 
 ## Checkpoints
 
 - [x] Name/scope/assets and Bob harness prepared.
-- [ ] 01 Core review: test source citation assertion; close source revision gap; test or narrow worker_ship claim.
-- [ ] 02 MCP: actual tools called in Bob; source analysis saved; invalid citations rejected.
+- [x] 01 Core review: source identity, queue timing, worker paths and visitor reset reviewed and tested.
+- [ ] 02 MCP: local stdio transport verified; actual tools called in Bob; two source-linked analyses saved. **← CURRENT**
 - [ ] 03 UI: landing -> action -> journey -> explanation/source/evidence; recorded provenance; mobile.
 - [ ] 04 Online: fresh visitor path, persistence, repeat/reset and errors checked.
 - [ ] 05 Package: all relevant summaries, README, attribution, deck, cover, video and statements.
@@ -81,11 +143,24 @@ Check boxes only with verified exit evidence, not an agent's assertion.
 
 1. Review changed files and actual check results; commit a verified checkpoint.
 2. Bob Tasks -> select project task -> click task header -> screenshot session consumption summary.
-3. Save readable PNG in bob_sessions/: dcnstrct_task01_core_summary.png. Include member alias for multiple builders.
-4. Index contribution, files/commit and PNG in bob_sessions/README.md. Include relevant retries and reviews, not only successes.
+3. Save a readable task-summary PNG in bob_sessions/ using the task number and purpose in the filename. Include member alias for multiple builders.
+4. Index contribution, files/commit and PNG in bob_sessions/README.md.
 5. Update this guide; tell Codex Bob finished so review can begin.
 
 Bob Shell and watsonx are optional. Shell/terminal/app screenshots supplement, never replace required IDE summaries. Subscription screenshot does not prove building.
+
+## Targets — September 27, Lagos/WAT
+
+| Target | Exit evidence |
+| --- | --- |
+| Next focused task | Genuine Bob MCP session: `list_runs` + `get_run` + `get_source` + `save_analysis` on both cancellation paths; capture summary PNG |
+| 06:00–08:00 | Integrated UI, hosted visitor path and evidence checks |
+| 10:00 | Latest build freeze target; begin demo packaging |
+| 10:00–14:00 | Video, deck, cover, statements and public checks |
+| 14:00 | Internal submission target |
+| 16:00 | Official deadline: 15:00 UTC / 11 AM ET |
+
+Targets are not promises. If MCP session slips, cut animations and landing extras; keep two real paths, Bob evidence and judge access. No fabricated fallback.
 
 ## Submission checklist
 
@@ -101,16 +176,11 @@ Bob Shell and watsonx are optional. Shell/terminal/app screenshots supplement, n
 - [ ] Final links, visibility, playback and fresh-session test checked.
 - [ ] Actual submission confirmation saved.
 
-Sources: [event](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon), [guide](https://lablab-ibm-bob-2-hackathon-guide.s3.us.cloud-object-storage.appdomain.cloud/index.html). Inspect actual submission form before final delivery.
+Sources: [event](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon), [guide](https://lablab-ibm-bob-2-hackathon-guide.s3.us.cloud-object-storage.appdomain.cloud/index.html), [IBM Bob IDE MCP setup](https://bob.ibm.com/docs/ide/configuration/mcp/mcp-in-bob). Inspect actual submission form before final delivery.
 
 ## Fill-in progress log
 
 | Time WAT | Task | Actual commands/result | Commit | Summary PNG | Next action/blocker |
 | --- | --- | --- | --- | --- | --- |
 | 01:54 WAT | 01 Core checks | `npm test` 31/31 incl. citation path/bounds checks; typecheck all packages clean; production build passes outside sandbox; diff check clean | 6a1e7d9 pushed | completion report pages captured; required consumption summary pending | GPT-6 Sol review; resolve source revision/worker coverage; then MCP |
-
-Current task: 01 Core — Bob reports complete; automated checks are green. Independent GPT-6 Sol review is pending.
-What worked: node:sqlite (built-in) removes native build dependency; ts-jest moduleNameMapper resolves shared package; all 31 tests pass first run after typecheck fixes.
-What failed: better-sqlite3 native build (no MSVC/Visual Studio on this machine) — switched to node:sqlite. rootDir tsconfig constraint needed removal for workspace cross-package imports.
-Files to inspect: packages/api/src/runs.ts (execution core), packages/api/src/__tests__/core.test.ts (all checks), packages/shared/src/contracts.ts (runtime contracts).
-Next single action: Ask Bob to fix source revision and test/narrow worker_ship, then complete MCP using the same task.
+| Bob task 02 | Review fixes + MCP | Bob reports 54 tests; later review found and corrected the source-root bug. GPT-6 Luna: `npm test` 61/61; typecheck 4 packages; shared/API/MCP builds; stdio smoke | pending commit | `dcnstrct_task02_mcp_summary.png` saved (22.95 coins) | Fresh Bob analysis task, verify actual tools, save analyses and task summary |

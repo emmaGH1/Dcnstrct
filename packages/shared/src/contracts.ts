@@ -7,7 +7,10 @@ export const SourceRefSchema = z.object({
   file: z.string(), // relative path, validated server-side against allowlist
   startLine: z.number().int().positive(),
   endLine: z.number().int().positive(),
-  sourceRevision: z.string(),
+  sourceRevision: z.string().min(1),
+}).refine((ref) => ref.endLine >= ref.startLine, {
+  message: "endLine must be greater than or equal to startLine",
+  path: ["endLine"],
 });
 export type SourceRef = z.infer<typeof SourceRefSchema>;
 
@@ -32,6 +35,7 @@ export const EventKindSchema = z.enum([
   "order_status_update",
   "job_queue",
   "worker_start",
+  "worker_status_read",
   "worker_skip",
   "worker_ship",
   "worker_complete",
@@ -206,6 +210,7 @@ export const SOURCE_ALLOWLIST = [
   "packages/api/src/routes.ts",
   "packages/api/src/runs.ts",
   "packages/shared/src/contracts.ts",
+  "packages/shared/src/source-revision.ts",
 ] as const;
 
 export type AllowedSourceFile = (typeof SOURCE_ALLOWLIST)[number];

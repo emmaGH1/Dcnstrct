@@ -51,10 +51,28 @@ export function buildRouter(db: Db): Router {
     res.json({ run, notifications, orders });
   });
 
-  // POST /api/demo/reset — clears all tables; never exposed in production
-  router.post("/demo/reset", (_req, res) => {
+  // POST /api/demo/reset — clears data for a specific run, or all rows in non-production.
+  // Body: { runId?: string }
+  // If runId is provided: wipes only that run's rows (safe for public visitors).
+  // If runId is absent: wipes all rows in non-production only (dev/local demo).
+  // Production without runId: returns 403.
+  router.post("/demo/reset", (req, res) => {
+    const { runId } = req.body as { runId?: string };
+
+    if (runId) {
+      // Visitor-scoped reset — always allowed; clears only the supplied run.
+      db.prepare(`DELETE FROM run_events WHERE run_id = ?`).run(runId);
+      db.prepare(`DELETE FROM notifications WHERE run_id = ?`).run(runId);
+      db.prepare(`DELETE FROM fulfillment_jobs WHERE run_id = ?`).run(runId);
+      db.prepare(`DELETE FROM orders WHERE run_id = ?`).run(runId);
+      db.prepare(`DELETE FROM runs WHERE id = ?`).run(runId);
+      res.json({ ok: true });
+      return;
+    }
+
+    // Global reset — dev/demo only
     if (process.env.NODE_ENV === "production") {
-      res.status(403).json({ error: "Reset not available in production" });
+      res.status(403).json({ error: "Global reset not available in production. Supply a runId to reset your own run." });
       return;
     }
     db.exec(

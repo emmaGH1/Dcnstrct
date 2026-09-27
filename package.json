@@ -4,13 +4,15 @@
   "workspaces": [
     "packages/shared",
     "packages/api",
-    "packages/client"
+    "packages/client",
+    "packages/mcp"
   ],
   "scripts": {
     "dev": "concurrently -n api,client -c cyan,green \"npm run dev -w packages/api\" \"npm run dev -w packages/client\"",
-    "build": "npm run build -w packages/shared && npm run build -w packages/api && npm run build -w packages/client",
-    "test": "npm run test -w packages/api",
-    "typecheck": "npm run typecheck -w packages/shared && npm run typecheck -w packages/api && npm run typecheck -w packages/client"
+    "build": "npm run build -w packages/shared && npm run build -w packages/api && npm run build -w packages/client && npm run build -w packages/mcp",
+    "test": "npm run test -w packages/api && npm run test -w packages/mcp",
+    "typecheck": "npm run typecheck -w packages/shared && npm run typecheck -w packages/api && npm run typecheck -w packages/client && npm run typecheck -w packages/mcp",
+    "smoke:mcp": "node scripts/mcp-transport-smoke.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

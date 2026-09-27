@@ -1,16 +1,16 @@
 # IBM Bob session evidence
 
-Two Bob completion report screenshots are saved below. They are supporting records, not the required per-task session consumption summary; that summary is still pending.
+Task 01 and task 02 session consumption summaries are saved below, alongside task 01 completion-report screenshots.
 
 Every participant saves ALL relevant IDE task session consumption summaries here: Tasks -> select task -> click header -> capture summary; PNG preferred. Filename includes product/team, task number, member alias when needed and description. Example dcnstrct_task01_core_summary.png. Include relevant retries/reviews. Confirm workspace; select All for cross-workspace tasks.
 
 | Task | Member alias | Actual contribution | Commit/files | Summary PNG | Status |
 | --- | --- | --- | --- | --- | --- |
-| 01 | | Execution core (reported by Bob; code review/checks in progress) | | `dcnstrct_task01_core_summary.png` | **Pending: capture consumption summary from task header** |
-| 02 | | MCP and interpretation | | | Pending |
+| 01 | | Execution core, 7.55 Bobcoins | | `dcnstrct_task01_core_summary_part1.png`, `dcnstrct_task01_core_summary_part2.png` | Captured; task ID adcb99016f90c206574a176019f779f |
+| 02 | | Core review fixes and MCP implementation; genuine Bob tool use still pending, 22.95 Bobcoins | See docs/REVIEW-02.md | `dcnstrct_task02_mcp_summary.png` | Captured and inspected; task ID ec493d91c8e1d51a59dd6be74991a973 |
 | 03 | | UI | | | Pending |
 
-Supporting completion report pages from the chat: `dcnstrct_task01_completion_report_part1.png` and `dcnstrct_task01_completion_report_part2.png`. These show task output/check results but not the task-header consumption summary. When capturing the summary, use two overlapping screenshots if one screenful clips its details.
+Task 01 completion-report pages remain separately saved as `dcnstrct_task01_completion_report_part1.png` and `dcnstrct_task01_completion_report_part2.png`. The task-summary screenshots include the task ID, workspace, context and Bobcoin total; two overlapping images preserve the report beneath the header.
 
 Check readability, participant coverage, tracked status/public visibility and secrets before submission. Subscription screenshot and optional Shell use do not replace IDE summaries.
 

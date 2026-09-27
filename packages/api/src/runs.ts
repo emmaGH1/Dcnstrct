@@ -11,9 +11,10 @@
  * before/after snapshots of the affected rows plus a sourceRef pointing to the
  * exact lines in this file where the operation was performed.
  *
- * Worker execution is synchronous within the run for test determinism but the
- * job row is written first ("queued") so the UI can show the queue phase before
- * the worker progresses through "running" -> "done" or "skipped".
+ * Worker execution is synchronous within the run for test determinism. The job
+ * row is written as "queued" before the cancellation DB write so that the queued
+ * state is visible and testable independently of whether the order is cancelled.
+ * The worker then reads persisted order state to decide whether to ship or skip.
  */
 import { nanoid } from "nanoid";
 import {
@@ -27,17 +28,17 @@ import {
   SourceRef,
   ScenarioId,
 } from "@dcnstrct/shared";
-import { getScenario, scenarioFingerprint, SOURCE_REVISION } from "./scenarios";
+import { getScenario, getSourceRevision, scenarioFingerprint } from "./scenarios";
 import type { Db } from "./db";
 
 // ── Source reference helpers ───────────────────────────────────────────────
 
-function ref(startLine: number, endLine: number): SourceRef {
+function ref(startLine: number, endLine: number, sourceRevision: string): SourceRef {
   return {
     file: "packages/api/src/runs.ts",
     startLine,
     endLine,
-    sourceRevision: SOURCE_REVISION,
+    sourceRevision,
   };
 }
 
@@ -252,11 +253,17 @@ function persistEvent(db: Db, rId: string, evt: RunEvent): void {
   );
 }
 
-function insertRun(db: Db, rId: string, scenarioId: ScenarioId, fingerprint: string): void {
+function insertRun(
+  db: Db,
+  rId: string,
+  scenarioId: ScenarioId,
+  fingerprint: string,
+  sourceRevision: string
+): void {
   db.prepare(
     `INSERT INTO runs (id, scenario_id, scenario_fingerprint, source_revision, status, started_at)
      VALUES (?, ?, ?, ?, 'running', ?)`
-  ).run(rId, scenarioId, fingerprint, SOURCE_REVISION, now());
+  ).run(rId, scenarioId, fingerprint, sourceRevision, now());
 }
 
 function finalizeRun(
@@ -388,21 +395,138 @@ export function loadOrdersForRun(db: Db, rId: string): Order[] {
   }));
 }
 
+// ── Worker phase ─────────────────────────────────────────────────────────────
+
+/**
+ * runWorkerPhase — execute the fulfillment worker for a job that is already
+ * persisted in "queued" state.
+ *
+ * This is a pure bounded function: it receives the DB, the IDs it needs, an
+ * emit callback, and a reference to the job-queue event to parent worker events
+ * against. It reads persisted order state to decide whether to ship or skip —
+ * the correct behaviour when the order has been cancelled before the worker ran.
+ *
+ * Extracting this function makes both the skip and the ship branch independently
+ * testable without triggering the full cancellation scenario.
+ */
+// Keep event sourceRef ranges aligned with the worker operations below.
+export function runWorkerPhase(
+  db: Db,
+  rId: string,
+  oId: string,
+  jId: string,
+  jobQueuedEvtId: string,
+  emit: (evt: Omit<RunEvent, "id" | "sequence" | "timestamp">) => RunEvent,
+  sourceRevision = getSourceRevision()
+): void {
+  // ── Worker start ──────────────────────────────────────────────────────────
+  const startedAt = now();
+  updateJob(db, jId, { status: "running", startedAt });
+  const runningJob = readJob(db, jId);
+  const queuedJob = { ...runningJob, status: "queued" as FulfillmentJob["status"], startedAt: null };
+
+  emit({
+    parentId: jobQueuedEvtId,
+    role: "worker_phase",
+    kind: "worker_start",
+    label: "Fulfillment worker started",
+    outcome: "success",
+    observedData: { jobId: jId, startedAt },
+    sourceRef: ref(415, 431, sourceRevision),
+    before: jobSnapshot(queuedJob),
+    after: jobSnapshot(runningJob),
+  });
+
+  // ── Worker reads CURRENT order state from DB — not a cached value ─────────
+  const currentOrder = readOrder(db, oId);
+  const workerSeesCancelled = currentOrder.status === "cancelled";
+
+  emit({
+    parentId: jobQueuedEvtId,
+    role: "db_read",
+    kind: "worker_status_read",   // distinct from worker_skip; this is a read, not a decision
+    label: `Worker reads current order status: ${currentOrder.status}`,
+    outcome: "success",
+    observedData: {
+      orderId: oId,
+      observedStatus: currentOrder.status,
+      willSkip: workerSeesCancelled,
+    },
+    sourceRef: ref(440, 455, sourceRevision),
+    before: null,
+    after: null,
+  });
+
+  if (workerSeesCancelled) {
+    // ── SKIP SHIPMENT — correct; never ship a cancelled order ─────────────
+    const completedAt = now();
+    updateJob(db, jId, { status: "skipped", completedAt, skipReason: "order_cancelled" });
+    const skippedJob = readJob(db, jId);
+
+    emit({
+      parentId: jobQueuedEvtId,
+      role: "worker_phase",
+      kind: "worker_skip",
+      label: "Worker skipped shipment — order was cancelled",
+      outcome: "skipped",
+      observedData: { jobId: jId, skipReason: "order_cancelled", orderId: oId },
+      sourceRef: ref(460, 476, sourceRevision),
+      before: jobSnapshot(runningJob),
+      after: jobSnapshot(skippedJob),
+    });
+  } else {
+    // ── FULFILLMENT PATH — persist shipped status, then emit ──────────────
+    const shippedAt = now();
+    // Persist the order transition BEFORE claiming shipment in the event
+    updateOrderStatus(db, oId, "shipped", shippedAt);
+    const shippedOrder = readOrder(db, oId);
+
+    const completedAt = now();
+    updateJob(db, jId, { status: "done", completedAt });
+    const doneJob = readJob(db, jId);
+
+    emit({
+      parentId: jobQueuedEvtId,
+      role: "worker_phase",
+      kind: "worker_ship",
+      label: "Worker shipped order — order transitioned to shipped",
+      outcome: "success",
+      observedData: {
+        jobId: jId,
+        orderId: oId,
+        previousStatus: currentOrder.status,
+        newStatus: shippedOrder.status,
+      },
+      sourceRef: ref(477, 503, sourceRevision),
+      before: jobSnapshot(runningJob),
+      after: jobSnapshot(doneJob),
+    });
+  }
+}
+
 // ── Main execution entry point ───────────────────────────────────────────────
 
 /**
  * executeRun — create a fresh isolated run for the given scenario.
  *
- * All DB operations run synchronously. The returned runId can be fetched via
- * GET /api/runs/:id. Events carry sourceRefs pointing to exact lines of this
- * file so the UI can navigate directly to the code that performed each operation.
+ * All DB operations run synchronously inside the request. The returned runId
+ * can be fetched via GET /api/runs/:id. Events carry sourceRefs pointing to
+ * exact lines of this file so the UI can navigate directly to the code that
+ * performed each operation.
+ *
+ * Job is inserted as "queued" BEFORE the cancellation DB write so that the
+ * queued state represents the premise of the cancellation scenario honestly.
  */
-export function executeRun(db: Db, scenarioId: ScenarioId): string {
+export function executeRun(
+  db: Db,
+  scenarioId: ScenarioId,
+  sourceRevision = getSourceRevision()
+): string {
   const rId = newRunId();
   const fingerprint = scenarioFingerprint(scenarioId);
   const scenario = getScenario(scenarioId);
 
-  insertRun(db, rId, scenarioId, fingerprint);
+  insertRun(db, rId, scenarioId, fingerprint, sourceRevision);
 
   let seq = 0;
 
@@ -442,7 +566,7 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
       label: "User requests cancellation",
       outcome: "success",
       observedData: { scenarioId, orderId: oId, initialStatus: scenario.initialOrderStatus },
-      sourceRef: ref(437, 448),
+      sourceRef: ref(561, 572, sourceRevision),
       before: orderSnapshot(initialOrder),
       after: null,
     });
@@ -462,7 +586,7 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
         label: "Cancellation refused — order already shipped",
         outcome: "refused",
         observedData: { orderId: oId, currentStatus: scenario.initialOrderStatus, reason: refusalReason },
-        sourceRef: ref(450, 468),
+        sourceRef: ref(574, 592, sourceRevision),
         before: orderSnapshot(initialOrder),
         after: orderSnapshot(initialOrder), // unchanged
       });
@@ -479,7 +603,7 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
           notificationsCreated: 0,
           workerInvoked: false,
         },
-        sourceRef: ref(470, 487),
+        sourceRef: ref(594, 609, sourceRevision),
         before: orderSnapshot(initialOrder),
         after: orderSnapshot(initialOrder),
       });
@@ -496,52 +620,14 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
       label: "Cancellation accepted — order still preparing",
       outcome: "success",
       observedData: { orderId: oId, currentStatus: scenario.initialOrderStatus },
-      sourceRef: ref(450, 451),
+      sourceRef: ref(615, 626, sourceRevision),
       before: orderSnapshot(initialOrder),
       after: null,
     });
 
-    // ── 4. DB write: mark order cancelled ─────────────────────────────────
-    const cancelledAt = now();
-    updateOrderStatus(db, oId, "cancelled", cancelledAt);
-    const cancelledOrder = readOrder(db, oId);
-
-    emit({
-      parentId: triggerEvt.id,
-      role: "db_write",
-      kind: "order_status_update",
-      label: "Order status updated to cancelled",
-      outcome: "success",
-      observedData: { orderId: oId, previousStatus: "preparing", newStatus: "cancelled" },
-      sourceRef: ref(504, 519),
-      before: orderSnapshot(initialOrder),
-      after: orderSnapshot(cancelledOrder),
-    });
-
-    // ── 5. Persist cancellation notification ──────────────────────────────
-    const notif: Notification = {
-      id: notifId(rId, "cancel"),
-      runId: rId,
-      orderId: oId,
-      type: "order_cancelled",
-      message: `Order ${oId} has been successfully cancelled.`,
-      createdAt: now(),
-    };
-    insertNotification(db, notif);
-
-    emit({
-      parentId: triggerEvt.id,
-      role: "notification",
-      kind: "notification_persisted",
-      label: "Cancellation notification persisted",
-      outcome: "success",
-      observedData: { notificationId: notif.id, type: notif.type, message: notif.message },
-      sourceRef: ref(521, 542),
-      before: null,
-      after: { id: notif.id, type: notif.type, message: notif.message },
-    });
-
-    // ── 6. Queue fulfillment job ──────────────────────────────────────────
+    // ── 4. Queue fulfillment job BEFORE marking order cancelled ────────────
+    // The job is seeded while the order is still "preparing" — this represents
+    // the honest premise: a job was already queued when the cancel arrived.
     const jId = jobId(rId);
     const job: FulfillmentJob = {
       id: jId,
@@ -562,83 +648,53 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
       label: "Fulfillment job queued",
       outcome: "success",
       observedData: { jobId: jId, orderId: oId, jobStatus: "queued" },
-      sourceRef: ref(544, 568),
+      sourceRef: ref(628, 654, sourceRevision),
       before: null,
       after: jobSnapshot(job),
     });
 
-    // ── 7. Worker: start, read current state, decide ─────────────────────
-    const startedAt = now();
-    updateJob(db, jId, { status: "running", startedAt });
-    const runningJob = readJob(db, jId);
+    // ── 5. DB write: mark order cancelled ─────────────────────────────────
+    const cancelledAt = now();
+    updateOrderStatus(db, oId, "cancelled", cancelledAt);
+    const cancelledOrder = readOrder(db, oId);
 
     emit({
-      parentId: jobQueuedEvt.id,
-      role: "worker_phase",
-      kind: "worker_start",
-      label: "Fulfillment worker started",
+      parentId: triggerEvt.id,
+      role: "db_write",
+      kind: "order_status_update",
+      label: "Order status updated to cancelled",
       outcome: "success",
-      observedData: { jobId: jId, startedAt },
-      sourceRef: ref(570, 585),
-      before: jobSnapshot(job),
-      after: jobSnapshot(runningJob),
+      observedData: { orderId: oId, previousStatus: "preparing", newStatus: "cancelled" },
+      sourceRef: ref(656, 671, sourceRevision),
+      before: orderSnapshot(initialOrder),
+      after: orderSnapshot(cancelledOrder),
     });
 
-    // Worker reads CURRENT order state from DB — not a cached value
-    const currentOrder = readOrder(db, oId);
-    const workerSeesCancelled = currentOrder.status === "cancelled";
+    // ── 6. Persist cancellation notification ──────────────────────────────
+    const notif: Notification = {
+      id: notifId(rId, "cancel"),
+      runId: rId,
+      orderId: oId,
+      type: "order_cancelled",
+      message: `Order ${oId} has been successfully cancelled.`,
+      createdAt: now(),
+    };
+    insertNotification(db, notif);
 
     emit({
-      parentId: jobQueuedEvt.id,
-      role: "db_read",
-      kind: "worker_skip", // pre-labelled; outcome assigned below
-      label: `Worker reads current order status: ${currentOrder.status}`,
+      parentId: triggerEvt.id,
+      role: "notification",
+      kind: "notification_persisted",
+      label: "Cancellation notification persisted",
       outcome: "success",
-      observedData: {
-        orderId: oId,
-        observedStatus: currentOrder.status,
-        willSkip: workerSeesCancelled,
-      },
-      sourceRef: ref(587, 605),
+      observedData: { notificationId: notif.id, type: notif.type, message: notif.message },
+      sourceRef: ref(673, 694, sourceRevision),
       before: null,
-      after: null,
+      after: { id: notif.id, type: notif.type, message: notif.message },
     });
 
-    if (workerSeesCancelled) {
-      // SKIP SHIPMENT — correct; never ship a cancelled order
-      const completedAt = now();
-      updateJob(db, jId, { status: "skipped", completedAt, skipReason: "order_cancelled" });
-      const skippedJob = readJob(db, jId);
-
-      emit({
-        parentId: jobQueuedEvt.id,
-        role: "worker_phase",
-        kind: "worker_skip",
-        label: "Worker skipped shipment — order was cancelled",
-        outcome: "skipped",
-        observedData: { jobId: jId, skipReason: "order_cancelled", orderId: oId },
-        sourceRef: ref(607, 623),
-        before: jobSnapshot(runningJob),
-        after: jobSnapshot(skippedJob),
-      });
-    } else {
-      // Fulfillment path — order was not cancelled before worker ran
-      const completedAt = now();
-      updateJob(db, jId, { status: "done", completedAt });
-      const doneJob = readJob(db, jId);
-
-      emit({
-        parentId: jobQueuedEvt.id,
-        role: "worker_phase",
-        kind: "worker_ship",
-        label: "Worker shipped order (not cancelled)",
-        outcome: "success",
-        observedData: { jobId: jId, orderId: oId },
-        sourceRef: ref(624, 640),
-        before: jobSnapshot(runningJob),
-        after: jobSnapshot(doneJob),
-      });
-    }
+    // ── 7. Worker phase ───────────────────────────────────────────────────
+    runWorkerPhase(db, rId, oId, jId, jobQueuedEvt.id, emit, sourceRevision);
 
     // ── 8. Final completion event ─────────────────────────────────────────
     const finalOrder = readOrder(db, oId);
@@ -661,7 +717,7 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
         workerInvoked: true,
         workerSkipped: finalJob.status === "skipped",
       },
-      sourceRef: ref(643, 669),
+      sourceRef: ref(699, 723, sourceRevision),
       before: orderSnapshot(initialOrder),
       after: orderSnapshot(finalOrder),
     });
@@ -681,7 +737,7 @@ export function executeRun(db: Db, scenarioId: ScenarioId): string {
         label: "Run failed unexpectedly",
         outcome: "failed",
         observedData: { error: message },
-        sourceRef: ref(671, 692),
+        sourceRef: ref(727, 744, sourceRevision),
         before: null,
         after: null,
         timestamp: now(),

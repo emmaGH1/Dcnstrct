@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "dcnstrct": {
+      "command": "node",
+      "args": ["node_modules/tsx/dist/cli.mjs", "packages/mcp/src/index.ts"],
+      "cwd": ".",
+      "env": {
+        "DB_PATH": "packages/api/data/dcnstrct.db"
+      },
+      "alwaysAllow": [],
+      "disabled": false
+    }
+  }
+}

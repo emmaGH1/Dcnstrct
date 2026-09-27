@@ -1,23 +1,29 @@
 /**
- * core.test.ts — meaningful checks for checkpoint 01
+ * core.test.ts — meaningful checks for checkpoint 01 + review fixes
  *
  * Tests cover:
  *  1. cancel_preparing: accepted, side effects persist, worker skips
  *  2. cancel_shipped: refused, state unchanged, no notifications
- *  3. fulfillment-job skip for an order cancelled before worker execution
- *  4. isolation: two concurrent runs do not share data
- *  5. reset: /api/demo/reset wipes all rows
- *  6. invalid scenario returns 400
+ *  3. worker_status_read event distinct from worker_skip
+ *  4. job seeded before cancellation (job exists in DB before order is cancelled)
+ *  5. runWorkerPhase skip and ship tested independently
+ *  6. worker_ship persists order status to shipped
+ *  7. isolation: two concurrent runs do not share data
+ *  8. reset: /api/demo/reset wipes all rows
+ *  9. invalid scenario returns 400
  */
 import request from "supertest";
 import express from "express";
 import cors from "cors";
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { createTestDb } from "../db";
 import { buildRouter } from "../routes";
-import { loadRun, loadNotifications, loadOrdersForRun } from "../runs";
-import { SOURCE_ALLOWLIST } from "@dcnstrct/shared";
+import { loadRun, loadNotifications, loadOrdersForRun, runWorkerPhase } from "../runs";
+import { SOURCE_ALLOWLIST, computeSourceRevision } from "@dcnstrct/shared";
+import { getSourceRevision } from "../scenarios";
+import type { RunEvent } from "@dcnstrct/shared";
 
 function buildTestApp() {
   const db = createTestDb();
@@ -115,6 +121,20 @@ describe("cancel_preparing — accepted path", () => {
     const startIdx = seqs.indexOf("worker_start");
     expect(queueIdx).toBeGreaterThanOrEqual(0);
     expect(startIdx).toBeGreaterThan(queueIdx);
+  });
+
+  it("events include a worker_status_read event with role db_read (distinct from worker_skip)", () => {
+    const readEvt = body.run.events.find((e) => e.kind === "worker_status_read" && e.role === "db_read");
+    expect(readEvt).toBeDefined();
+    expect(readEvt?.outcome).toBe("success");
+  });
+
+  it("job_queue event appears before order_status_update (job seeded before cancel)", () => {
+    const seqs = body.run.events;
+    const jobQueueSeq = seqs.find((e) => e.kind === "job_queue")?.sequence ?? -1;
+    const cancelSeq = seqs.find((e) => e.kind === "order_status_update")?.sequence ?? -1;
+    expect(jobQueueSeq).toBeGreaterThan(0);
+    expect(cancelSeq).toBeGreaterThan(jobQueueSeq);
   });
 
   it("events include a worker_skip event (worker observed cancelled state)", () => {
@@ -230,7 +250,123 @@ describe("cancel_shipped — refusal path", () => {
   });
 });
 
-// ── 3. Isolation: two runs have separate orders ───────────────────────────────
+// ── 3. runWorkerPhase — independent skip and ship tests ──────────────────────
+
+import { nanoid } from "nanoid";
+
+describe("runWorkerPhase — independent worker skip (order cancelled before worker runs)", () => {
+  it("skips shipment and persists job as skipped when order is cancelled", () => {
+    const db = createTestDb();
+    // Minimal fixtures: insert a run row, order, and job directly
+    const rId = `run_${nanoid(10)}`;
+    const oId = `ord_${rId.slice(4)}`;
+    const jId = `job_${rId.slice(4)}`;
+    const ts = new Date().toISOString();
+
+    db.exec(`
+      INSERT INTO runs (id, scenario_id, scenario_fingerprint, source_revision, status, started_at)
+      VALUES ('${rId}', 'cancel_preparing', 'fp_test', 'rev_test', 'running', '${ts}');
+      INSERT INTO orders (id, run_id, customer_id, item, quantity, status, created_at, updated_at)
+      VALUES ('${oId}', '${rId}', 'cust_synthetic', 'Widget A', 1, 'cancelled', '${ts}', '${ts}');
+      INSERT INTO fulfillment_jobs (id, run_id, order_id, status, created_at)
+      VALUES ('${jId}', '${rId}', '${oId}', 'queued', '${ts}');
+    `);
+
+    const emitted: RunEvent[] = [];
+    let seq = 0;
+    function emit(evt: Omit<RunEvent, "id" | "sequence" | "timestamp">): RunEvent {
+      seq += 1;
+      const full = {
+        ...evt,
+        id: `evt_${rId.slice(4)}_${String(seq).padStart(2, "0")}`,
+        sequence: seq,
+        timestamp: new Date().toISOString(),
+      } as RunEvent;
+      emitted.push(full);
+      return full;
+    }
+
+    runWorkerPhase(db, rId, oId, jId, "evt_parent_00", emit as Parameters<typeof runWorkerPhase>[5]);
+
+    const statusReadEvt = emitted.find((e) => e.kind === "worker_status_read");
+    expect(statusReadEvt).toBeDefined();
+    expect(statusReadEvt?.role).toBe("db_read");
+    expect((statusReadEvt?.observedData as { observedStatus?: string })?.observedStatus).toBe("cancelled");
+
+    const skipEvt = emitted.find((e) => e.kind === "worker_skip");
+    expect(skipEvt).toBeDefined();
+    expect(skipEvt?.outcome).toBe("skipped");
+    expect(skipEvt?.role).toBe("worker_phase");
+
+    // Verify actual persisted DB state
+    const jobRow = db.prepare("SELECT status FROM fulfillment_jobs WHERE id = ?").get(jId) as { status: string };
+    expect(jobRow.status).toBe("skipped");
+
+    // No order status mutation
+    const orderRow = db.prepare("SELECT status FROM orders WHERE id = ?").get(oId) as { status: string };
+    expect(orderRow.status).toBe("cancelled");
+  });
+});
+
+describe("runWorkerPhase — independent worker ship (order still preparing when worker runs)", () => {
+  it("transitions order to shipped and marks job done", () => {
+    const db = createTestDb();
+    const rId = `run_${nanoid(10)}`;
+    const oId = `ord_${rId.slice(4)}`;
+    const jId = `job_${rId.slice(4)}`;
+    const ts = new Date().toISOString();
+
+    db.exec(`
+      INSERT INTO runs (id, scenario_id, scenario_fingerprint, source_revision, status, started_at)
+      VALUES ('${rId}', 'cancel_preparing', 'fp_test', 'rev_test', 'running', '${ts}');
+      INSERT INTO orders (id, run_id, customer_id, item, quantity, status, created_at, updated_at)
+      VALUES ('${oId}', '${rId}', 'cust_synthetic', 'Widget A', 1, 'preparing', '${ts}', '${ts}');
+      INSERT INTO fulfillment_jobs (id, run_id, order_id, status, created_at)
+      VALUES ('${jId}', '${rId}', '${oId}', 'queued', '${ts}');
+    `);
+
+    const emitted: RunEvent[] = [];
+    let seq = 0;
+    function emit(evt: Omit<RunEvent, "id" | "sequence" | "timestamp">): RunEvent {
+      seq += 1;
+      const full = {
+        ...evt,
+        id: `evt_${rId.slice(4)}_${String(seq).padStart(2, "0")}`,
+        sequence: seq,
+        timestamp: new Date().toISOString(),
+      } as RunEvent;
+      emitted.push(full);
+      return full;
+    }
+
+    runWorkerPhase(db, rId, oId, jId, "evt_parent_00", emit as Parameters<typeof runWorkerPhase>[5]);
+
+    const statusReadEvt = emitted.find((e) => e.kind === "worker_status_read");
+    expect(statusReadEvt).toBeDefined();
+    expect((statusReadEvt?.observedData as { observedStatus?: string })?.observedStatus).toBe("preparing");
+
+    const shipEvt = emitted.find((e) => e.kind === "worker_ship");
+    expect(shipEvt).toBeDefined();
+    expect(shipEvt?.outcome).toBe("success");
+    expect(shipEvt?.role).toBe("worker_phase");
+
+    // The after snapshot on worker_ship is the job snapshot (status: "done").
+    // Order persistence is verified via observedData.newStatus and the DB row below.
+    const afterSnapshot = shipEvt?.after as { status?: string } | null;
+    expect(afterSnapshot?.status).toBe("done"); // job snapshot
+    const observedData = shipEvt?.observedData as { newStatus?: string };
+    expect(observedData?.newStatus).toBe("shipped");
+
+    // Verify actual persisted DB state
+    const orderRow = db.prepare("SELECT status FROM orders WHERE id = ?").get(oId) as { status: string };
+    expect(orderRow.status).toBe("shipped");
+
+    const jobRow = db.prepare("SELECT status FROM fulfillment_jobs WHERE id = ?").get(jId) as { status: string };
+    expect(jobRow.status).toBe("done");
+  });
+});
+
+// ── 4. Isolation: two runs have separate orders ───────────────────────────────
 
 describe("run isolation", () => {
   it("two concurrent runs do not share order rows", async () => {
@@ -257,22 +393,38 @@ describe("run isolation", () => {
   });
 });
 
-// ── 4. Reset ──────────────────────────────────────────────────────────────────
+// ── 5. Reset ──────────────────────────────────────────────────────────────────
 
 describe("demo reset", () => {
-  it("POST /api/demo/reset wipes all rows and subsequent GET returns 404", async () => {
+  it("POST /api/demo/reset (global, no runId) wipes all rows and subsequent GET returns 404", async () => {
     const { app } = buildTestApp();
     const runId = await createRun(app, "cancel_preparing");
     // confirm it exists
     const before = await request(app).get(`/api/runs/${runId}`);
     expect(before.status).toBe(200);
-    // reset
-    const reset = await request(app).post("/api/demo/reset");
+    // global reset
+    const reset = await request(app).post("/api/demo/reset").send({});
     expect(reset.status).toBe(200);
     expect(reset.body.ok).toBe(true);
     // no longer found
     const after = await request(app).get(`/api/runs/${runId}`);
     expect(after.status).toBe(404);
+  });
+
+  it("POST /api/demo/reset with runId wipes only that run and leaves other runs intact", async () => {
+    const { app } = buildTestApp();
+    const runId1 = await createRun(app, "cancel_preparing");
+    const runId2 = await createRun(app, "cancel_shipped");
+    // visitor-scoped reset of run1 only
+    const reset = await request(app).post("/api/demo/reset").send({ runId: runId1 });
+    expect(reset.status).toBe(200);
+    expect(reset.body.ok).toBe(true);
+    // run1 gone
+    const after1 = await request(app).get(`/api/runs/${runId1}`);
+    expect(after1.status).toBe(404);
+    // run2 still accessible
+    const after2 = await request(app).get(`/api/runs/${runId2}`);
+    expect(after2.status).toBe(200);
   });
 });
 
@@ -303,5 +455,37 @@ describe("GET /api/scenarios", () => {
     const ids = res.body.map((s: { id: string }) => s.id);
     expect(ids).toContain("cancel_preparing");
     expect(ids).toContain("cancel_shipped");
+  });
+});
+
+describe("source revision", () => {
+  it("hashes the real repository source and changes when an allowlisted file changes", () => {
+    const root = path.resolve(__dirname, "../../../../");
+    expect(fs.existsSync(path.join(root, "packages/api/src/runs.ts"))).toBe(true);
+    const before = getSourceRevision();
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "dcnstrct-source-"));
+    try {
+      for (const relative of SOURCE_ALLOWLIST) {
+        const destination = path.join(fixture, relative);
+        fs.mkdirSync(path.dirname(destination), { recursive: true });
+        fs.copyFileSync(path.join(root, relative), destination);
+      }
+      const fixtureBefore = computeSourceRevision(fixture);
+      const fixtureFile = path.join(fixture, "packages/api/src/runs.ts");
+      fs.appendFileSync(fixtureFile, "\n// source revision regression check\n");
+      expect(computeSourceRevision(fixture)).not.toBe(fixtureBefore);
+      expect(before).toHaveLength(64);
+    } finally {
+      fs.rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it("fails closed when an allowlisted source file is missing", () => {
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), "dcnstrct-source-missing-"));
+    try {
+      expect(() => computeSourceRevision(empty)).toThrow();
+    } finally {
+      fs.rmSync(empty, { recursive: true, force: true });
+    }
   });
 });

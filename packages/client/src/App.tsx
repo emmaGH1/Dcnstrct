@@ -35,8 +35,16 @@ async function fetchRun(runId: string): Promise<RunResult> {
   return res.json() as Promise<RunResult>;
 }
 
-async function resetDemo(): Promise<void> {
-  await fetch(`${API}/demo/reset`, { method: "POST" });
+async function resetDemo(runId?: string): Promise<void> {
+  const res = await fetch(`${API}/demo/reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(runId ? { runId } : {}),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `Reset failed: ${res.status}`);
+  }
 }
 
 export default function App() {
@@ -71,9 +79,13 @@ export default function App() {
   }
 
   async function handleReset() {
-    await resetDemo();
-    setResult(null);
-    setError(null);
+    try {
+      await resetDemo(result?.run.id);
+      setResult(null);
+      setError(null);
+    } catch (e) {
+      setError(String(e));
+    }
   }
 
   return (

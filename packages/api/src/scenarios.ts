@@ -7,9 +7,16 @@
  * that recorded analyses can be invalidated when the scenario changes. It is
  * intentionally a short deterministic string, not a cryptographic hash, because
  * the threat model is drift detection, not security.
+ *
+ * SOURCE_REVISION is derived from the actual content of every allowlisted source
+ * file at process start, including uncommitted edits. This ensures that a saved
+ * analysis is invalidated whenever any source in the allowlist changes, even
+ * before those changes are committed. It is NOT the git SHA; it is a content
+ * identity. The 12-character hex prefix is sufficient for drift detection.
  */
-import { Scenario, ScenarioId } from "@dcnstrct/shared";
+import { Scenario, ScenarioId, computeSourceRevision } from "@dcnstrct/shared";
 import crypto from "crypto";
+import path from "path";
 
 export const SCENARIOS: Scenario[] = [
   {
@@ -46,5 +53,7 @@ export function scenarioFingerprint(scenarioId: ScenarioId): string {
   return crypto.createHash("sha256").update(content).digest("hex").slice(0, 12);
 }
 
-/** Source revision = short git SHA, or "dev" when unavailable */
-export const SOURCE_REVISION: string = process.env.SOURCE_REVISION ?? "dev";
+/** Recompute for each run so edits during a long-running API process are detected. */
+export function getSourceRevision(repoRoot = path.resolve(__dirname, "../../../")): string {
+  return computeSourceRevision(repoRoot);
+}
