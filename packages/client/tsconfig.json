@@ -9,7 +9,9 @@
     "noEmit": true,
     "skipLibCheck": true,
     "paths": {
-      "@dcnstrct/shared": ["../shared/src/index.ts"]
+      "@dcnstrct/shared": ["../shared/src/index.ts"],
+      "@dcnstrct/contracts": ["../shared/src/contracts.ts"],
+      "@dcnstrct/ui-contracts": ["../shared/src/ui-contracts.ts"]
     }
   },
   "include": ["src"],

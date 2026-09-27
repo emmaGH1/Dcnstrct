@@ -1,17 +1,27 @@
 # Dcnstrct — start here
 
-Latest verification: GPT-6 Luna Extra High fixes for REVIEW-02 are implemented. `npm test` passes 61 tests (38 API, 23 MCP); `npm run typecheck` passes all four packages; the full root production build passes when Vite is allowed its required filesystem access; the MCP stdio smoke passes. Task 02B now demonstrates genuine Bob calls and two persisted analyses. Review found draft corrections and incomplete MCP source reads; see docs/REVIEW-03.md. Application source remains unchanged since these passing checks.
+Latest update — 2026-09-27: User rejected the initial UI and authorized a focused first-screen rebuild against the supplied Notion reference. Rebuilt navigation, balanced two-line hero (“Understand what happens / and the [journey] behind it”), centered fully rounded rotating capsule, soft off-white canvas, pastel-green CTA and a 67%-width reserved workspace frame. The flat cancellation diagram is removed. Official Inter variable font is self-hosted with its license and preloaded; no package dependency was added.
+
+This pass changed App.tsx, styles.css, client/index.html, public/fonts/InterVariable.woff2 and Inter-LICENSE.txt, DESIGN.md, README.md, this guide and task 03 notes. Verification: npm test passed 66/66 (43 API + 23 MCP); npm run typecheck passed all four packages; npm run build -w packages/client passed (JS 231.98 kB / 67.38 kB gzip; CSS 29.35 kB / 7.38 kB gzip). Initial sandbox build failed due Windows ancestor-directory permissions; rerunning outside the sandbox passed. git diff --check passed.
+
+Actual landing renders were inspected at 1440×1000, 768×1024 and 375×812 using the browser’s documented viewport control. No horizontal overflow was observed; the font loaded, pause changed to resume, and the hero CTA opened /demo. The final accessible heading and full-opacity word transition were confirmed after rebuilding. Temporary viewport overrides were reset. Detector warnings for the chosen Inter family were retained to follow the reference; its skeleton border warning was resolved.
+
+Remaining: user visual review of this first screen, separate workspace/lower-section redesign, real workspace screenshot or video, and full workspace responsive review. These checks apply to the landing page, not approval of the workspace. Checkpoint 03 remains open. Save ALL relevant Bob task consumption summary PNGs in bob_sessions/, including retries and reviews.
+
+
+Earlier implementation status — 2026-09-27: The approved cream/pastel-green UI is implemented in React and served from the local API. It has a centered two-line hero with a multicolor rotating word pill, pastel-green CTA, centered navigation, five landing sections, a transparent IBM Bob mascot, and a separate naturally scrolling action workspace. The two synthetic cancellation outcomes, event journey, observed data, source excerpts, recorded analyses and comparison are wired to the real local API.
 
 ## Where I am
 
-Current checkpoint: **03 UI handoff** — corrected Bob analysis content approved against current source and persisted runs. Bob's final report confirms get_source still failed and read_file was used; disclose this fallback. Updated consumption summary remains pending. See docs/REVIEW-03.md.
-Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
-Next action: GPT-6 Luna Extra High implements the detailed UI plan in docs/bob-tasks/03-ui.md using reviewed corrected-records.json. UI design decisions are recorded in docs/DESIGN.md: cream/teal light theme, multicolor rotating word pill, five-section landing and separate scrolling workspace. Build safe analysis/source HTTP delivery first, workspace second, landing third, then real integration/responsive checks. No demo video asset is confirmed; use a real workspace screenshot until footage exists. No further Bob retry is needed before UI; reserve remaining coins until actual updated consumption is known. A new final-summary PNG is present but not inspected in this planning task; its consumption/evidence status must not be inferred from its filename.
-Last passing checks: `npm test` → 61/61 (38 API + 23 MCP); `npm run typecheck` → all 4 packages clean; full `npm run build` passes including Vite and MCP; `npm run smoke:mcp` passes. Vite bundle: 146.68 kB (47.20 kB gzip).
-Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Verified MCP implementation commit: 0ce32b1. Task 02B evidence and review are recorded separately; full checkpoint 02 approval awaits the focused corrections.
+Current checkpoint: **03 UI implementation — first-screen rebuild ready for visual review; workspace redesign pending.** The final Bob summary is inspected and indexed. Bob confirms `get_source` still failed because its discovered schema omitted `sourceRevision`; it used `read_file` instead. Do not claim Bob called `get_source` successfully. Corrected records and their source references were independently validated by Codex; see docs/REVIEW-03.md.
+Owner: Codex implements and reviews this UI checkpoint; the user operates genuine Bob IDE tasks.
+Last passing checks: `npm test` → 66/66 (43 API + 23 MCP); `npm run typecheck` → all four packages clean; `npm run build` → shared, API, client and MCP clean; `npm run smoke:mcp` → MCP stdio initialize, discovery, list/get/source, error paths and 20 repeated DB calls passed; `git diff --check` → clean after final docs edits.
+Local UI check: landing, mascot section and workspace were inspected in Chrome at the available desktop viewport (~1220px wide). Preparing and shipped flows, source lookup, Bob-analysis match, comparison, invalid citation/event/run, 404 handling, and scoped reset passed. Two persisted preparing-order test runs were reset by exact run ID; the shipped-order test ID was already 404. No other rows were reset. A 375/768/1440 visual pass is not claimed: the browser rejected the temporary narrow-preview URL under its URL safety policy, so no alternate viewport workaround was attempted.
+The latest inspected Bob IDE summary is `bob_sessions/dcnstrct_task02b_bob_analysis_summary_final.png.png`, task `97e135f8b290f41a602bf35b18247040`, showing 6.20 Bobcoins. No demo-video asset or deployed visitor URL is confirmed.
+Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Verified MCP implementation commit: 0ce32b1. Task 02B evidence and review are recorded separately; corrected records passed independent source/revision checks, while Bob's get_source discovery issue remains disclosed.
 Public repository: https://github.com/emmaGH1/Dcnstrct
 
-## Runtime notes
+## Planning history (superseded by the status above)
 
 Latest palette selection: pastel-green light CTA/cream approved over OLED/blue; user requested neutral lighter journey markers, two-line centered hero/pill, 70–80% desktop preview width, stronger CTA with black circular arrow and nonredundant nav. Updated DESIGN/task 03 with overrides. Generated/refined conceptual image saved as ignored .hackathon/ui-previews/landing-pastel-refined.png; preview geometry remains approximate, headline wording adjustment remains proposed. No actual UI/assets/source behavior changed, no tests/build run. Documentation diff checked; runtime/responsive work remains Luna's task. Save ALL relevant Bob consumption-summary PNGs, including retries/reviews, in bob_sessions/.
 
@@ -123,10 +133,10 @@ save_analysis(analysis=<JSON string matching AnalysisSchema>)
 - `provenance.delivery` must be `"recorded"` for analyses produced in this session.
 - If MCP connection cannot be verified, report the blocker — do not simulate tool calls.
 
-## Gaps at checkpoint 02 exit
+## Gaps and carried findings
 
-- Bob saved both corrected analyses; content/references/current source/persisted outcomes verified. Updated task summary and successful Bob get_source tool history remain to be captured. Earlier screenshot records 35.14 total Bobcoins; continuation consumption is not yet verified.
-- UI is a minimal functional scaffold (raw event table). Checkpoint 03 deliverable.
+- Bob's final summary is saved and inspected; task 02B displays 6.20 Bobcoins. Bob's get_source call remained blocked by its IDE schema, with read_file fallback disclosed.
+- UI implementation and desktop flows are verified. Exact responsive screenshot review and independent checkpoint review remain open.
 - Visitor reset is now run-scoped (Finding 4 resolved); global reset still accessible in dev/demo.
 
 ## Review findings — resolved
@@ -143,8 +153,8 @@ save_analysis(analysis=<JSON string matching AnalysisSchema>)
 
 - [x] Name/scope/assets and Bob harness prepared.
 - [x] 01 Core review: source identity, queue timing, worker paths and visitor reset reviewed and tested.
-- [ ] 02 MCP: local stdio transport verified; actual tools called in Bob; two source-linked analyses saved. **← CURRENT**
-- [ ] 03 UI: landing -> action -> journey -> explanation/source/evidence; recorded provenance; mobile.
+- [ ] 02 MCP: local stdio transport and Bob list/get/save calls verified; two source-linked analyses saved. Bob get_source remained unavailable; read_file fallback is documented.
+- [ ] 03 UI: landing -> action -> journey -> explanation/source/evidence; recorded provenance; exact mobile/tablet/desktop visual checks and independent review. **← CURRENT**
 - [ ] 04 Online: fresh visitor path, persistence, repeat/reset and errors checked.
 - [ ] 05 Package: all relevant summaries, README, attribution, deck, cover, video and statements.
 - [ ] 06 Submission: links/limits checked and actual confirmation saved.
@@ -165,7 +175,7 @@ Bob Shell and watsonx are optional. Shell/terminal/app screenshots supplement, n
 
 | Target | Exit evidence |
 | --- | --- |
-| Next focused task | Genuine Bob MCP session: `list_runs` + `get_run` + `get_source` + `save_analysis` on both cancellation paths; capture summary PNG |
+| Next focused task | Independent checkpoint 03 review and exact responsive visual checks when an approved viewport method is available |
 | 06:00–08:00 | Integrated UI, hosted visitor path and evidence checks |
 | 10:00 | Latest build freeze target; begin demo packaging |
 | 10:00–14:00 | Video, deck, cover, statements and public checks |

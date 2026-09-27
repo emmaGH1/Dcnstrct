@@ -4,9 +4,12 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  publicDir: path.resolve(__dirname, "../../public"),
   resolve: {
     alias: {
       "@dcnstrct/shared": path.resolve(__dirname, "../shared/src/index.ts"),
+      "@dcnstrct/contracts": path.resolve(__dirname, "../shared/src/contracts.ts"),
+      "@dcnstrct/ui-contracts": path.resolve(__dirname, "../shared/src/ui-contracts.ts"),
     },
   },
   server: {

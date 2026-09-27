@@ -4,7 +4,7 @@ Understand an unfamiliar application by following what a user action actually do
 
 Built for the IBM Bob 2.0 hackathon. Demo: follow order cancellation through policy, database, fulfillment worker and notification records. Bob interprets observed evidence together with source through a local MCP workflow.
 
-**Status:** The execution core and local MCP server pass 61 tests, all package typechecks, the full production build, and an MCP stdio smoke test. Genuine IBM Bob IDE calls produced two corrected, reviewed explanations with preserved synthetic evidence. The updated session summary/source-tool history is still pending. The UI remains a raw scaffold; deployment is pending.
+**Status:** The cream-and-pastel-green landing page and guided cancellation workspace are implemented. The two synthetic cancellation paths run against the real local app, show their observed events, and link to source and reviewed recorded IBM Bob interpretations. All 66 automated tests, all four package typechecks, the production build, and the MCP stdio smoke test pass. The rebuilt landing page was inspected at 375px, 768px and 1440px; the separate workspace redesign and its full responsive review remain open. The UI is a local prototype; deployment is pending.
 
 Start with [the living build guide](docs/BUILD_GUIDE.md). Contracts: [product](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), [design](docs/DESIGN.md). Focused Bob prompts: docs/bob-tasks/.
 
@@ -34,15 +34,16 @@ npm run typecheck -w packages/shared
 npm run typecheck -w packages/api
 npm run typecheck -w packages/client
 
-# Tests (API + MCP — 61 checks)
+# Tests (API + MCP — 66 checks)
 npm test
 
 # Test real MCP stdio transport against a temporary database
 npm run smoke:mcp
 ```
 
-**Test results:** 61 passed (38 API, 23 MCP).
-**Typecheck and production build:** clean across all four packages.
+**Test results:** 66 passed (43 API, 23 MCP).
+**Typecheck and production build:** clean across all four packages; the client bundle is about 232 kB (67.4 kB gzip) JavaScript and 29.4 kB (7.4 kB gzip) CSS.
+**MCP transport:** stdio smoke passed initialize, tool discovery, list/get/source, invalid-input paths, and 20 repeated database-backed calls against its temporary database.
 
 ## What is tested
 
@@ -54,21 +55,21 @@ npm run smoke:mcp
 
 The supported preparing-order cancellation queues a fulfillment job before the cancellation write; the worker then reads persisted state and skips it. The normal ship branch is independently tested. Worker execution is synchronous inside the request; this prototype does not demonstrate a separately scheduled background worker.
 
-## Judge path (planned)
+## Local demo path
 
-Landing → Explore demo → cancel preparing order → inspect journey/source/evidence → try shipped refusal → compare branches → reset. Synthetic sample data. Recorded Bob explanations will be labeled; no live hosted Bob API or general repository support claimed.
+Landing → Explore demo → cancel the preparing order → inspect its journey, source and recorded interpretation → try the shipped refusal → compare both outcomes → reset only this tab's runs. Synthetic sample data. Bob interpretations are recorded and revision-matched; there is no hosted Bob API or general repository support claim.
 
 ## Architecture
 
 - `packages/shared` — Zod runtime contracts and source revision hashing
 - `packages/api` — Node/TypeScript Express API; `node:sqlite` backed; isolated run per visitor
-- `packages/client` — React/TypeScript/Vite (checkpoint 01: functional raw scaffold; checkpoint 03: full UI)
+- `packages/client` — React/TypeScript/Vite landing page and naturally scrolling guided workspace
 - `packages/mcp` — local stdio MCP server with list/get/read/save tools and stale-source checks
 
 ## Bob MCP session
 
-The MCP server is built and transport-tested. A genuine Bob session saved corrected explanations for both cancellation paths; their content, references and persisted outcomes have been reviewed. Originals and corrected records are preserved with [Bob session evidence](bob_sessions/README.md). The continuation summary and successful Bob source-tool history remain to be documented. UI integration will label these recorded analyses with scenario fingerprint, source revision and task reference. No live hosted Bob API or model ID claimed.
+The MCP server is built and transport-tested. A genuine Bob session saved corrected explanations for both cancellation paths; their content, references and persisted outcomes have been reviewed. The final IDE summary is in `bob_sessions/dcnstrct_task02b_bob_analysis_summary_final.png.png` and shows 6.20 Bobcoins. Bob's report says `get_source` still failed because the IDE's discovered schema lacked `sourceRevision`; Bob used its local `read_file` fallback. Do not claim Bob successfully called `get_source`. Codex independently rechecked the cited bytes and current source revision. Originals and corrected records are preserved with [Bob session evidence](bob_sessions/README.md). No live hosted Bob API or model ID is claimed.
 
 ## Attribution
 
-Supplied logo at `public/brand/dcnstrct-logo.png` used unchanged; confirm owner-provided asset provenance before submission. Dependency/font attribution will be added with full UI implementation. Synthetic data only; no credentials or personal data in tracked files.
+Supplied Dcnstrct logo at `public/brand/dcnstrct-logo.png` is used unchanged. The transparent IBM Bob mascot is a derivative of the user-provided source image; confirm asset rights before public submission. The interface self-hosts the official Inter variable font; its SIL Open Font License is included in `public/fonts/Inter-LICENSE.txt`. The hero workspace frame is a labeled placeholder awaiting a real capture. Synthetic data only; no credentials or personal/client data in tracked files.

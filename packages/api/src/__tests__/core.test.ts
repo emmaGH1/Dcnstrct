@@ -19,6 +19,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { createTestDb } from "../db";
+import { buildPresentationRouter } from "../presentation";
 import { buildRouter } from "../routes";
 import { loadRun, loadNotifications, loadOrdersForRun, runWorkerPhase } from "../runs";
 import { SOURCE_ALLOWLIST, computeSourceRevision } from "@dcnstrct/shared";
@@ -487,5 +488,71 @@ describe("source revision", () => {
     } finally {
       fs.rmSync(empty, { recursive: true, force: true });
     }
+  });
+});
+
+describe("presentation endpoints", () => {
+  const repoRoot = path.resolve(__dirname, "../../../../");
+
+  it.each(["cancel_preparing", "cancel_shipped"])("delivers only the reviewed interpretation matched to %s run's event sequence", async (scenarioId) => {
+    const { app, db } = buildTestApp();
+    app.use("/api", buildPresentationRouter(db, repoRoot));
+    const runId = await createRun(app, scenarioId);
+    const runResponse = await request(app).get(`/api/runs/${runId}`);
+    const run = runResponse.body.run as { events: Array<{ id: string }>; scenarioFingerprint: string; sourceRevision: string };
+
+    const response = await request(app).get(`/api/runs/${runId}/analysis`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe("available");
+    expect(response.body.recording.provenance.delivery).toBe("recorded");
+    expect(response.body.recording.analysis.scenarioFingerprint).toBe(run.scenarioFingerprint);
+    expect(response.body.recording.analysis.sourceRevision).toBe(run.sourceRevision);
+    expect(response.body.eventMap).toHaveLength(run.events.length);
+    expect(new Set(response.body.eventMap.map((entry: { runEventId: string }) => entry.runEventId)))
+      .toEqual(new Set(run.events.map((event) => event.id)));
+  });
+
+  it("returns a bounded, numbered allowlisted excerpt for a run event", async () => {
+    const { app, db } = buildTestApp();
+    app.use("/api", buildPresentationRouter(db, repoRoot));
+    const runId = await createRun(app, "cancel_preparing");
+    const runResponse = await request(app).get(`/api/runs/${runId}`);
+    const run = runResponse.body.run as { events: Array<{ id: string }>; sourceRevision: string };
+
+    const response = await request(app).get(`/api/runs/${runId}/source/${run.events[0].id}/0`);
+
+    expect(response.status).toBe(200);
+    expect(SOURCE_ALLOWLIST).toContain(response.body.file);
+    expect(response.body.sourceRevision).toBe(run.sourceRevision);
+    expect(response.body.lines.length).toBeGreaterThan(0);
+    expect(response.body.lines.length).toBeLessThanOrEqual(80);
+    expect(response.body.lines[0].number).toBe(response.body.startLine);
+    expect(response.body.lines.at(-1).number).toBe(response.body.endLine);
+  });
+
+  it("rejects bad citation indices and event IDs", async () => {
+    const { app, db } = buildTestApp();
+    app.use("/api", buildPresentationRouter(db, repoRoot));
+    const runId = await createRun(app, "cancel_preparing");
+    const runResponse = await request(app).get(`/api/runs/${runId}`);
+    const eventId = runResponse.body.run.events[0].id as string;
+
+    expect((await request(app).get(`/api/runs/${runId}/source/${eventId}/999`)).status).toBe(400);
+    expect((await request(app).get(`/api/runs/${runId}/source/missing-event/0`)).status).toBe(404);
+  });
+
+  it("withholds a recorded explanation when the current source revision cannot be verified", async () => {
+    const { app, db } = buildTestApp();
+    const missingSourceRoot = path.join(os.tmpdir(), "dcnstrct-source-root-does-not-exist");
+    app.use("/api", buildPresentationRouter(db, missingSourceRoot));
+    const runId = await createRun(app, "cancel_preparing");
+
+    const response = await request(app).get(`/api/runs/${runId}/analysis`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe("unavailable");
+    expect(response.body.recording).toBeNull();
+    expect(response.body.eventMap).toEqual([]);
   });
 });

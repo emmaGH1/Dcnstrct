@@ -23,7 +23,7 @@ Unmodified drafts and database evidence are preserved in `bob_sessions/task02b/o
 
 Genuine Bob analysis creation is demonstrated, and the screenshot is acceptable. Drafts need the focused corrections above and successful Bob get_source calls before marking checkpoint 02 fully complete. No broad test rerun is needed for this review: no application source changed. Use `docs/bob-tasks/02c-analysis-corrections.md`; do not repeat scaffolding or server setup.
 
-Recorded consumption: 7.55 + 22.95 + 4.64 = **35.14 Bobcoins**, approximately **4.86 remaining** from 40 if these are the only sessions. Preserve the task summary again after any continuation increases its total.
+At the time of this review the available summaries showed 7.55 + 22.95 + 4.64 = **35.14 Bobcoins**. A later final task summary supersedes the 4.64 figure; see the evidence update below.
 
 ## Correction follow-up review
 
@@ -38,7 +38,7 @@ The accepted analysis now explicitly describes a seeded synthetic job and synchr
 
 Preserved corrected originals and validated evidence: `bob_sessions/task02b/corrected-records.json`. UI must select these reviewed IDs, not the earlier drafts. Do not silently edit Bob-authored records or display them as live generation.
 
-**Evidence follow-up still pending:** the repository PNG remains the earlier 4.64-Bobcoin summary, unchanged since 05:20 WAT. An updated summary/final report is needed to record continuation consumption and demonstrate Bob's successful get_source calls. Codex's independent source reads do not establish Bob's tool history. No further Bob correction is requested on the content reviewed here.
+The updated IDE summary is now saved at `bob_sessions/dcnstrct_task02b_bob_analysis_summary_final.png.png` and was inspected. It shows task `97e135f8b290f41a602bf35b18247040`, all tasks completed, and **6.20 Bobcoins**. Treat 6.20 as the task's final displayed total; with the earlier 7.55 and 22.95 summaries, the displayed sum is 36.70 Bobcoins. This newer summary does not establish successful `get_source` calls; the final report still says those failed. Codex's source reads do not prove Bob tool history.
 
 Application code unchanged; no broad test/build rerun warranted. `.bob/mcp.json` changed only formatting; runtime settings are equivalent. Keep that user-generated formatting change separate from this review.
 
@@ -46,4 +46,4 @@ Application code unchanged; no broad test/build rerun warranted. `.bob/mcp.json`
 
 Bob's continuation report confirms both corrected IDs above and preserves the originals. **get_source still failed with MCP -32602, Required at sourceRevision.** Bob reports its visible tool schema still lacked that argument and that it used read_file for all required ranges against identical source bytes. Do not claim Bob successfully used get_source. The report is saved in `bob_sessions/task02b/correction-report.md` as user-supplied evidence, not an independently captured tool log.
 
-This is a known Bob-side connection/tool-discovery blocker, not a reason to repeat analysis generation or reject the independently verified corrected content. Actual list/get/save MCP use plus direct source inspection is a genuine Bob workflow. Proceed with UI integration and disclose the fallback; leave successful Bob get_source verification unresolved until a later fresh connection. Reserve coins. Updated consumption-summary PNG remains required; an optional report screenshot supplements it.
+This is a known Bob-side connection/tool-discovery blocker, not a reason to repeat analysis generation or reject the independently verified corrected content. Actual list/get/save MCP use plus direct source inspection is a genuine Bob workflow. UI integration proceeds with the fallback disclosed; successful Bob get_source verification remains unresolved. Do not retry solely to change the completion record. The updated summary is indexed in `bob_sessions/README.md`.
