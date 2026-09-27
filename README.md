@@ -4,7 +4,7 @@ Understand an unfamiliar application by following what a user action actually do
 
 Built for the IBM Bob 2.0 hackathon. Demo: follow order cancellation through policy, database, fulfillment worker and notification records. Bob interprets observed evidence together with source through a local MCP workflow.
 
-**Status:** The cream-and-pastel-green landing page and guided cancellation workspace are implemented. The two synthetic cancellation paths run against the real local app, show their observed events, and link to source and reviewed recorded IBM Bob interpretations. All 66 automated tests, all four package typechecks, the production build, and the MCP stdio smoke test pass. The rebuilt landing page was inspected at 375px, 768px and 1440px; the separate workspace redesign and its full responsive review remain open. The UI is a local prototype; deployment is pending.
+**Status:** The cream-and-pastel-green landing page and guided cancellation workspace are implemented. The two synthetic cancellation paths run against the real local app, show their observed events, and link to source and reviewed recorded IBM Bob interpretations. All 66 automated tests, all four package typechecks, the production build, and the MCP stdio smoke test pass. The rebuilt landing page and workspace were inspected at 375px, 768px and 1440px; the hero capture remains a labeled placeholder awaiting a real screenshot or video. The UI is a local prototype; deployment is pending.
 
 Start with [the living build guide](docs/BUILD_GUIDE.md). Contracts: [product](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), [design](docs/DESIGN.md). Focused Bob prompts: docs/bob-tasks/.
 
@@ -42,7 +42,7 @@ npm run smoke:mcp
 ```
 
 **Test results:** 66 passed (43 API, 23 MCP).
-**Typecheck and production build:** clean across all four packages; the client bundle is about 232 kB (67.4 kB gzip) JavaScript and 29.4 kB (7.4 kB gzip) CSS.
+**Typecheck and production build:** clean across all four packages; the client bundle is about 233 kB (67.5 kB gzip) JavaScript and 40.3 kB (9.2 kB gzip) CSS.
 **MCP transport:** stdio smoke passed initialize, tool discovery, list/get/source, invalid-input paths, and 20 repeated database-backed calls against its temporary database.
 
 ## What is tested

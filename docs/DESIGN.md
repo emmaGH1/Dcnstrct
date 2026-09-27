@@ -12,7 +12,7 @@ Use the approved light concept: a warm cream page, bold black typography, spacio
 
 ## Landing page
 
-The centered header has the Dcnstrct mark at left, Product / Resources / IBM Bob links in the middle, and Explore demo at right. Resources points to the real project repository. Keep the navigation compact and avoid a redundant Demo link.
+The centered header has the slightly enlarged Dcnstrct mark (48px desktop, 40px phone) and wordmark at left, Product / Resources / IBM Bob links in the middle, and Explore demo at right. Resources points to the real project repository. Keep the navigation compact and avoid a redundant Demo link.
 
 The hero reads **“Understand what happens / and the [journey] behind it.”** It uses two centered lines, large bold type, and a rotating word pill between fixed text. Rotate journey, logic, decisions, effects and evidence about every three seconds. Change the pill and its dot together, reserve enough width to prevent jumps, and keep the pause control discreet beside the pill. Stop rotation when the pill is offscreen or the page is hidden; honor reduced-motion preferences and provide a stable accessible headline.
 
@@ -26,7 +26,7 @@ The landing page has five substantial, content-led sections:
 4. How IBM Bob explains observed events and relevant source. Label the interpretation as recorded and disclose the local MCP workflow accurately.
 5. A concise final invitation.
 
-Compact navigation and a useful project footer sit outside those five sections. Give sections around 50–70vh where the content benefits; let content and small-screen layouts determine their height. Do not add invented customers, measurements, usage claims or authentication UI.
+Use editorial step rows, a divided two-branch panel and a white Bob section with a standalone transparent mascot. Avoid redundant eyebrow labels above landing headings. Compact navigation and a useful white project footer sit outside those five sections. Give sections around 50–70vh where the content benefits; let content and small-screen layouts determine their height. Do not add invented customers, measurements, usage claims or authentication UI.
 
 ## IBM Bob artwork
 
@@ -34,7 +34,7 @@ Keep the supplied original `public/brand/ibm-bob-mascot.png` unchanged. The land
 
 ## Workspace
 
-`/demo` is a naturally scrolling guided workspace, not a fixed-height three-pane dashboard. It contains four anchored steps:
+`/demo` is a naturally scrolling application frame with compact sidebar navigation, an action area and a vertical journey beside selected evidence on desktop. Evidence remains visible while following later steps; below 1001px the inspection areas stack. On phones sidebar links become a compact horizontal row. It contains four anchored steps:
 
 1. Try a cancellation in a synthetic preparing or shipped order.
 2. Follow the actual ordered events returned by the application.
