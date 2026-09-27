@@ -13,6 +13,10 @@ Every participant saves ALL relevant IDE task session consumption summaries here
 
 Task 01 completion-report pages remain separately saved as `dcnstrct_task01_completion_report_part1.png` and `dcnstrct_task01_completion_report_part2.png`. The task-summary screenshots include the task ID, workspace, context and Bobcoin total; two overlapping images preserve the report beneath the header.
 
+Task 02B continuation produced reviewed corrected analyses `ana_xXlmH_gNhP_65l701tq` and `ana_kvqcWMxMEB_7anise9a`, preserved in `task02b/corrected-records.json`. Content corrections are approved. The existing PNG still records the earlier 4.64 cost; final continuation consumption and successful Bob get_source calls await the updated task summary/final report. Do not add 4.64 twice if this is the same task's cumulative total.
+
+The supplied correction report is preserved in `task02b/correction-report.md`: get_source still failed with a missing sourceRevision argument; Bob used read_file instead. Successful Bob get_source use remains unverified. Proceed with the reviewed content and disclose the fallback. Save an updated cumulative consumption-summary PNG; a screenshot of the correction report is optional supporting evidence.
+
 Check readability, participant coverage, tracked status/public visibility and secrets before submission. Subscription screenshot and optional Shell use do not replace IDE summaries.
 
 Source: https://lablab-ibm-bob-2-hackathon-guide.s3.us.cloud-object-storage.appdomain.cloud/index.html

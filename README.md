@@ -4,7 +4,7 @@ Understand an unfamiliar application by following what a user action actually do
 
 Built for the IBM Bob 2.0 hackathon. Demo: follow order cancellation through policy, database, fulfillment worker and notification records. Bob interprets observed evidence together with source through a local MCP workflow.
 
-**Status:** The execution core and local MCP server pass 61 tests, all package typechecks, the full production build, and an MCP stdio smoke test. Genuine IBM Bob IDE tool use and saved explanations are still pending. The UI remains a raw scaffold; deployment is pending.
+**Status:** The execution core and local MCP server pass 61 tests, all package typechecks, the full production build, and an MCP stdio smoke test. Genuine IBM Bob IDE calls produced two corrected, reviewed explanations with preserved synthetic evidence. The updated session summary/source-tool history is still pending. The UI remains a raw scaffold; deployment is pending.
 
 Start with [the living build guide](docs/BUILD_GUIDE.md). Contracts: [product](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), [design](docs/DESIGN.md). Focused Bob prompts: docs/bob-tasks/.
 
@@ -67,7 +67,7 @@ Landing → Explore demo → cancel preparing order → inspect journey/source/e
 
 ## Bob MCP session
 
-The MCP server is built and transport-tested, but the genuine Bob session is pending (checkpoint 02). Recorded analyses will be labeled with scenario fingerprint, source revision and task reference. No live hosted Bob API or model ID claimed. [Bob session evidence](bob_sessions/README.md) records build sessions and the pending analysis task.
+The MCP server is built and transport-tested. A genuine Bob session saved corrected explanations for both cancellation paths; their content, references and persisted outcomes have been reviewed. Originals and corrected records are preserved with [Bob session evidence](bob_sessions/README.md). The continuation summary and successful Bob source-tool history remain to be documented. UI integration will label these recorded analyses with scenario fingerprint, source revision and task reference. No live hosted Bob API or model ID claimed.
 
 ## Attribution
 

@@ -1,0 +1,715 @@
+{
+  "note": "Unmodified corrected Bob analyses and actual synthetic evidence. Codex independently verified source reads; this export does not prove which tools Bob used. See docs/REVIEW-03.md.",
+  "records": [
+    {
+      "analysisId": "ana_xXlmH_gNhP_65l701tq",
+      "persistedAt": "2026-09-27T04:34:06.957Z",
+      "analysis": {
+        "schemaVersion": "1",
+        "runId": "run_xXlmH_gNhP",
+        "scenarioFingerprint": "b87053a0658b",
+        "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09",
+        "provenance": {
+          "provider": "ibm-bob",
+          "taskReference": "97e135f8b290f41a602bf35b18247040",
+          "createdAt": "2026-09-27T04:33:03.373Z",
+          "delivery": "recorded"
+        },
+        "summary": "Scenario cancel_preparing: a cancellation request arrived while the order was still in 'preparing' state. Policy accepted the request. A fulfillment job was seeded as 'queued' (a synthetic premise entry, not a real concurrent job) before the order status write. The order was then written to 'cancelled'. A cancellation notification was persisted. The worker phase ran synchronously within the same HTTP request: it re-read the live order status from the database, observed 'cancelled', and skipped shipment. The worker skip is correct and reproducible in this synchronous model; no concurrent race safety was demonstrated.",
+        "steps": [
+          {
+            "eventId": "evt_xXlmH_gNhP_01",
+            "explanation": "Trigger event: cancellation request arrives. The order snapshot at this point shows status='preparing'. This is the root parent for all subsequent events. observedData records scenarioId, orderId, and initialStatus='preparing'.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 561,
+                "endLine": 572,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_01"
+            ],
+            "uncertainty": null
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_02",
+            "explanation": "Policy check: source line 575 evaluates `canCancel = scenario.initialOrderStatus === 'preparing'`. Because the initial status is 'preparing', canCancel is true and execution follows the accepted path (lines 615–626). The before snapshot confirms status='preparing'; no after snapshot since no order write occurred at this step.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 574,
+                "endLine": 626,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_01",
+              "evt_xXlmH_gNhP_02"
+            ],
+            "uncertainty": null
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_03",
+            "explanation": "Fulfillment job inserted with status='queued' before the order status is changed (source lines 628–654). Per the executeRun docstring (lines 509–519), the job is seeded while the order is still 'preparing' to represent the premise of the cancellation scenario honestly — this is a synthetic queue entry, not a job created by a concurrent fulfillment system. The after snapshot shows the newly created job record.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 628,
+                "endLine": 654,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              },
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 509,
+                "endLine": 519,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_03"
+            ],
+            "uncertainty": "The job is a seeded premise entry, not a real concurrent fulfillment job. Its existence proves the scenario premise is set up correctly; it does not demonstrate that a live external fulfillment system would also skip in this situation."
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_04",
+            "explanation": "Database write: order status updated from 'preparing' to 'cancelled' (source lines 656–671). The before/after snapshots confirm the transition: before status='preparing', after status='cancelled'. updatedAt advances; all other order fields are unchanged.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 656,
+                "endLine": 671,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_04"
+            ],
+            "uncertainty": null
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_05",
+            "explanation": "Notification persisted with type='order_cancelled' (source lines 673–694). The after snapshot confirms the notification record was created. No before snapshot since this is an insert, not an update.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 673,
+                "endLine": 694,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_05"
+            ],
+            "uncertainty": null
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_06",
+            "explanation": "Worker started: job status updated to 'running', startedAt set (source lines 415–431). The before/after snapshots confirm job transitions from queued to running. The worker phase runs synchronously within the same HTTP request, after the order is already cancelled.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 415,
+                "endLine": 431,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              },
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 509,
+                "endLine": 519,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_06"
+            ],
+            "uncertainty": null
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_07",
+            "explanation": "Worker re-reads the live order status from the database (source lines 440–455). It does not use any cached value; it calls readOrder at runtime. observedStatus='cancelled' and willSkip=true are recorded in observedData. This is a db_read event, distinct from the skip decision event, making the read observable in the trace.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 440,
+                "endLine": 455,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_07"
+            ],
+            "uncertainty": "The worker always sees 'cancelled' here because it runs synchronously after the order write in the same request (source lines 509–519: 'All DB operations run synchronously inside the request'). No concurrent write scenario was exercised. The skip is deterministic in this synchronous model; its behaviour under genuine async or concurrent job execution is not demonstrated by this run."
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_08",
+            "explanation": "Worker skips shipment because the live status read returned 'cancelled' (source lines 460–476). Job updated to status='skipped' with skipReason='order_cancelled'. Before shows job in 'running', after shows 'skipped'. No shipment was executed.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 460,
+                "endLine": 476,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_07",
+              "evt_xXlmH_gNhP_08"
+            ],
+            "uncertainty": "Concurrent race safety is not demonstrated: the synchronous execution model guarantees the worker reads 'cancelled' only because the order write and worker phase share the same request (source lines 509–519). A real async worker consuming from an external queue could race with the cancellation write."
+          },
+          {
+            "eventId": "evt_xXlmH_gNhP_09",
+            "explanation": "Run completion event (source lines 699–723). observedData confirms: cancelAccepted=true, finalOrderStatus='cancelled', jobStatus='skipped', notificationsCreated=1, workerInvoked=true, workerSkipped=true. The after snapshot matches the post-write state from evt_04.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 699,
+                "endLine": 723,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_xXlmH_gNhP_09"
+            ],
+            "uncertainty": null
+          }
+        ],
+        "branchExplanation": "The accepted path is taken because `scenario.initialOrderStatus === 'preparing'` evaluates to true (source line 575). The refused path (`!canCancel`, lines 577–613) is not taken. The ordering within the accepted path — seed job first, then write order cancelled, then run worker synchronously — means the worker always reads 'cancelled'. This ordering is a property of the synchronous single-request model (source lines 509–519), not a demonstrated concurrency guarantee.",
+        "sideEffects": [
+          "Order ord_xXlmH_gNhP status changed from 'preparing' to 'cancelled' in the database (evt_xXlmH_gNhP_04)",
+          "Fulfillment job job_xXlmH_gNhP created as a synthetic premise entry (status=queued), progressed to running, then skipped (evt_xXlmH_gNhP_03, _06, _08)",
+          "Notification ntf_xXlmH_gNhP_cancel of type order_cancelled persisted (evt_xXlmH_gNhP_05)",
+          "No shipment executed — worker_skip outcome observed in evt_xXlmH_gNhP_08"
+        ]
+      },
+      "run": {
+        "id": "run_xXlmH_gNhP",
+        "scenarioId": "cancel_preparing",
+        "scenarioFingerprint": "b87053a0658b",
+        "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09",
+        "status": "completed",
+        "startedAt": "2026-09-27T04:04:58.879Z",
+        "completedAt": "2026-09-27T04:04:58.913Z",
+        "cancelAccepted": true,
+        "refusalReason": null,
+        "events": [
+          {
+            "id": "evt_xXlmH_gNhP_01",
+            "sequence": 1,
+            "parentId": null,
+            "role": "trigger",
+            "kind": "cancellation_request",
+            "label": "User requests cancellation",
+            "outcome": "success",
+            "observedData": {
+              "scenarioId": "cancel_preparing",
+              "orderId": "ord_xXlmH_gNhP",
+              "initialStatus": "preparing"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 561,
+              "endLine": 572,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_xXlmH_gNhP",
+              "status": "preparing",
+              "updatedAt": "2026-09-27T04:04:58.880Z"
+            },
+            "after": null,
+            "timestamp": "2026-09-27T04:04:58.882Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_02",
+            "sequence": 2,
+            "parentId": "evt_xXlmH_gNhP_01",
+            "role": "policy_check",
+            "kind": "policy_accept",
+            "label": "Cancellation accepted — order still preparing",
+            "outcome": "success",
+            "observedData": {
+              "orderId": "ord_xXlmH_gNhP",
+              "currentStatus": "preparing"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 615,
+              "endLine": 626,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_xXlmH_gNhP",
+              "status": "preparing",
+              "updatedAt": "2026-09-27T04:04:58.880Z"
+            },
+            "after": null,
+            "timestamp": "2026-09-27T04:04:58.886Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_03",
+            "sequence": 3,
+            "parentId": "evt_xXlmH_gNhP_01",
+            "role": "worker_phase",
+            "kind": "job_queue",
+            "label": "Fulfillment job queued",
+            "outcome": "success",
+            "observedData": {
+              "jobId": "job_xXlmH_gNhP",
+              "orderId": "ord_xXlmH_gNhP",
+              "jobStatus": "queued"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 628,
+              "endLine": 654,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": null,
+            "after": {
+              "id": "job_xXlmH_gNhP",
+              "status": "queued",
+              "startedAt": null,
+              "completedAt": null,
+              "skipReason": null
+            },
+            "timestamp": "2026-09-27T04:04:58.892Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_04",
+            "sequence": 4,
+            "parentId": "evt_xXlmH_gNhP_01",
+            "role": "db_write",
+            "kind": "order_status_update",
+            "label": "Order status updated to cancelled",
+            "outcome": "success",
+            "observedData": {
+              "orderId": "ord_xXlmH_gNhP",
+              "previousStatus": "preparing",
+              "newStatus": "cancelled"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 656,
+              "endLine": 671,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_xXlmH_gNhP",
+              "status": "preparing",
+              "updatedAt": "2026-09-27T04:04:58.880Z"
+            },
+            "after": {
+              "id": "ord_xXlmH_gNhP",
+              "status": "cancelled",
+              "updatedAt": "2026-09-27T04:04:58.894Z"
+            },
+            "timestamp": "2026-09-27T04:04:58.895Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_05",
+            "sequence": 5,
+            "parentId": "evt_xXlmH_gNhP_01",
+            "role": "notification",
+            "kind": "notification_persisted",
+            "label": "Cancellation notification persisted",
+            "outcome": "success",
+            "observedData": {
+              "notificationId": "ntf_xXlmH_gNhP_cancel",
+              "type": "order_cancelled",
+              "message": "Order ord_xXlmH_gNhP has been successfully cancelled."
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 673,
+              "endLine": 694,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": null,
+            "after": {
+              "id": "ntf_xXlmH_gNhP_cancel",
+              "type": "order_cancelled",
+              "message": "Order ord_xXlmH_gNhP has been successfully cancelled."
+            },
+            "timestamp": "2026-09-27T04:04:58.898Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_06",
+            "sequence": 6,
+            "parentId": "evt_xXlmH_gNhP_03",
+            "role": "worker_phase",
+            "kind": "worker_start",
+            "label": "Fulfillment worker started",
+            "outcome": "success",
+            "observedData": {
+              "jobId": "job_xXlmH_gNhP",
+              "startedAt": "2026-09-27T04:04:58.900Z"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 415,
+              "endLine": 431,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "job_xXlmH_gNhP",
+              "status": "queued",
+              "startedAt": null,
+              "completedAt": null,
+              "skipReason": null
+            },
+            "after": {
+              "id": "job_xXlmH_gNhP",
+              "status": "running",
+              "startedAt": "2026-09-27T04:04:58.900Z",
+              "completedAt": null,
+              "skipReason": null
+            },
+            "timestamp": "2026-09-27T04:04:58.902Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_07",
+            "sequence": 7,
+            "parentId": "evt_xXlmH_gNhP_03",
+            "role": "db_read",
+            "kind": "worker_status_read",
+            "label": "Worker reads current order status: cancelled",
+            "outcome": "success",
+            "observedData": {
+              "orderId": "ord_xXlmH_gNhP",
+              "observedStatus": "cancelled",
+              "willSkip": true
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 440,
+              "endLine": 455,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": null,
+            "after": null,
+            "timestamp": "2026-09-27T04:04:58.903Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_08",
+            "sequence": 8,
+            "parentId": "evt_xXlmH_gNhP_03",
+            "role": "worker_phase",
+            "kind": "worker_skip",
+            "label": "Worker skipped shipment — order was cancelled",
+            "outcome": "skipped",
+            "observedData": {
+              "jobId": "job_xXlmH_gNhP",
+              "skipReason": "order_cancelled",
+              "orderId": "ord_xXlmH_gNhP"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 460,
+              "endLine": 476,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "job_xXlmH_gNhP",
+              "status": "running",
+              "startedAt": "2026-09-27T04:04:58.900Z",
+              "completedAt": null,
+              "skipReason": null
+            },
+            "after": {
+              "id": "job_xXlmH_gNhP",
+              "status": "skipped",
+              "startedAt": "2026-09-27T04:04:58.900Z",
+              "completedAt": "2026-09-27T04:04:58.905Z",
+              "skipReason": "order_cancelled"
+            },
+            "timestamp": "2026-09-27T04:04:58.907Z"
+          },
+          {
+            "id": "evt_xXlmH_gNhP_09",
+            "sequence": 9,
+            "parentId": "evt_xXlmH_gNhP_01",
+            "role": "completion",
+            "kind": "run_complete",
+            "label": "Run complete — cancellation accepted",
+            "outcome": "success",
+            "observedData": {
+              "cancelAccepted": true,
+              "finalOrderStatus": "cancelled",
+              "jobStatus": "skipped",
+              "notificationsCreated": 1,
+              "workerInvoked": true,
+              "workerSkipped": true
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 699,
+              "endLine": 723,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_xXlmH_gNhP",
+              "status": "preparing",
+              "updatedAt": "2026-09-27T04:04:58.880Z"
+            },
+            "after": {
+              "id": "ord_xXlmH_gNhP",
+              "status": "cancelled",
+              "updatedAt": "2026-09-27T04:04:58.894Z"
+            },
+            "timestamp": "2026-09-27T04:04:58.911Z"
+          }
+        ],
+        "beforeState": {
+          "id": "ord_xXlmH_gNhP",
+          "status": "preparing",
+          "updatedAt": "2026-09-27T04:04:58.880Z"
+        },
+        "afterState": {
+          "id": "ord_xXlmH_gNhP",
+          "status": "cancelled",
+          "updatedAt": "2026-09-27T04:04:58.894Z"
+        }
+      },
+      "orders": [
+        {
+          "id": "ord_xXlmH_gNhP",
+          "run_id": "run_xXlmH_gNhP",
+          "customer_id": "cust_synthetic",
+          "item": "Widget A",
+          "quantity": 1,
+          "status": "cancelled",
+          "created_at": "2026-09-27T04:04:58.880Z",
+          "updated_at": "2026-09-27T04:04:58.894Z"
+        }
+      ],
+      "jobs": [
+        {
+          "id": "job_xXlmH_gNhP",
+          "run_id": "run_xXlmH_gNhP",
+          "order_id": "ord_xXlmH_gNhP",
+          "status": "skipped",
+          "created_at": "2026-09-27T04:04:58.889Z",
+          "started_at": "2026-09-27T04:04:58.900Z",
+          "completed_at": "2026-09-27T04:04:58.905Z",
+          "skip_reason": "order_cancelled"
+        }
+      ],
+      "notifications": [
+        {
+          "id": "ntf_xXlmH_gNhP_cancel",
+          "run_id": "run_xXlmH_gNhP",
+          "order_id": "ord_xXlmH_gNhP",
+          "type": "order_cancelled",
+          "message": "Order ord_xXlmH_gNhP has been successfully cancelled.",
+          "created_at": "2026-09-27T04:04:58.897Z"
+        }
+      ]
+    },
+    {
+      "analysisId": "ana_kvqcWMxMEB_7anise9a",
+      "persistedAt": "2026-09-27T04:34:28.879Z",
+      "analysis": {
+        "schemaVersion": "1",
+        "runId": "run_kvqcWMxMEB",
+        "scenarioFingerprint": "f23443acd14b",
+        "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09",
+        "provenance": {
+          "provider": "ibm-bob",
+          "taskReference": "97e135f8b290f41a602bf35b18247040",
+          "createdAt": "2026-09-27T04:33:03.373Z",
+          "delivery": "recorded"
+        },
+        "summary": "Scenario cancel_shipped: a cancellation request arrived while the order was already in 'shipped' state. Policy refused the request. The refused path emits event rows (policy_refuse and run_complete) and calls finalizeRun — these are run-housekeeping writes, not order-state mutations. No order status change occurred, no fulfillment job was created, no notification was persisted. The order status before and after the run is identical ('shipped'). The run completed with cancelAccepted=false and refusalReason set to the fixed dispatch message.",
+        "steps": [
+          {
+            "eventId": "evt_kvqcWMxMEB_01",
+            "explanation": "Trigger event: cancellation request arrives. The order snapshot shows status='shipped'. This event is the root parent for both subsequent events. observedData records scenarioId, orderId, and initialStatus='shipped', confirming the starting state.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 561,
+                "endLine": 572,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_kvqcWMxMEB_01"
+            ],
+            "uncertainty": null
+          },
+          {
+            "eventId": "evt_kvqcWMxMEB_02",
+            "explanation": "Policy check: source line 575 evaluates `canCancel = scenario.initialOrderStatus === 'preparing'`. Because the initial status is 'shipped', canCancel is false; execution enters the `!canCancel` branch at line 577 (source lines 574–592). The refusalReason is the fixed string at lines 579–580. The emit call at lines 582–592 sets before and after both to orderSnapshot(initialOrder) — the after snapshot is an explicit comment 'unchanged'. The order record is not written at any point in this branch. The before and after snapshots in the event are identical (status='shipped', same updatedAt), confirming no mutation occurred.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 574,
+                "endLine": 592,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_kvqcWMxMEB_01",
+              "evt_kvqcWMxMEB_02"
+            ],
+            "uncertainty": "The refused path does emit run_event rows to the database (policy_refuse and run_complete) and calls finalizeRun which writes the run record. These are run-housekeeping writes, not order-state mutations. The observation that no order status change, no job, and no notification occurred is fully supported; the absence of order/job/notification writes is confirmed by identical snapshots and notificationsCreated=0, workerInvoked=false in evt_kvqcWMxMEB_03."
+          },
+          {
+            "eventId": "evt_kvqcWMxMEB_03",
+            "explanation": "Run completion event for the refused path (source lines 594–613). observedData confirms: cancelAccepted=false, refusalReason matches the fixed policy string, notificationsCreated=0, workerInvoked=false. Before and after snapshots are both status='shipped' with the same updatedAt timestamp, consistent with no order writes. finalizeRun is called at line 611 to persist the run record, then line 612 returns rId immediately — the accepted path (line 615 onward) is never reached.",
+            "sourceRefs": [
+              {
+                "file": "packages/api/src/runs.ts",
+                "startLine": 594,
+                "endLine": 613,
+                "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+              }
+            ],
+            "evidenceEventIds": [
+              "evt_kvqcWMxMEB_03"
+            ],
+            "uncertainty": null
+          }
+        ],
+        "branchExplanation": "The refused path is taken because `scenario.initialOrderStatus === 'preparing'` evaluates to false (actual status is 'shipped'). Execution enters the `!canCancel` branch at source line 577. This branch: emits policy_refuse (lines 582–592), emits run_complete with outcome='refused' (lines 594–609), calls finalizeRun with cancelAccepted=false (line 611), and returns at line 612. The accepted path starting at line 615 is never entered. No fulfillment job, no order status write, no notification.",
+        "sideEffects": [
+          "No order status mutation: ord_kvqcWMxMEB remains at 'shipped' throughout; before and after snapshots in evt_kvqcWMxMEB_02 and evt_kvqcWMxMEB_03 are identical",
+          "No fulfillment job created",
+          "No notification persisted (notificationsCreated=0 confirmed in evt_kvqcWMxMEB_03)",
+          "Worker never invoked (workerInvoked=false confirmed in evt_kvqcWMxMEB_03)",
+          "Run housekeeping writes did occur: event rows for policy_refuse and run_complete were inserted, and finalizeRun updated the run record (these are not order-state side effects)"
+        ]
+      },
+      "run": {
+        "id": "run_kvqcWMxMEB",
+        "scenarioId": "cancel_shipped",
+        "scenarioFingerprint": "f23443acd14b",
+        "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09",
+        "status": "completed",
+        "startedAt": "2026-09-27T04:05:08.298Z",
+        "completedAt": "2026-09-27T04:05:08.310Z",
+        "cancelAccepted": false,
+        "refusalReason": "Order has already been dispatched. Please use the return portal within 30 days.",
+        "events": [
+          {
+            "id": "evt_kvqcWMxMEB_01",
+            "sequence": 1,
+            "parentId": null,
+            "role": "trigger",
+            "kind": "cancellation_request",
+            "label": "User requests cancellation",
+            "outcome": "success",
+            "observedData": {
+              "scenarioId": "cancel_shipped",
+              "orderId": "ord_kvqcWMxMEB",
+              "initialStatus": "shipped"
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 561,
+              "endLine": 572,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_kvqcWMxMEB",
+              "status": "shipped",
+              "updatedAt": "2026-09-27T04:05:08.304Z"
+            },
+            "after": null,
+            "timestamp": "2026-09-27T04:05:08.305Z"
+          },
+          {
+            "id": "evt_kvqcWMxMEB_02",
+            "sequence": 2,
+            "parentId": "evt_kvqcWMxMEB_01",
+            "role": "policy_check",
+            "kind": "policy_refuse",
+            "label": "Cancellation refused — order already shipped",
+            "outcome": "refused",
+            "observedData": {
+              "orderId": "ord_kvqcWMxMEB",
+              "currentStatus": "shipped",
+              "reason": "Order has already been dispatched. Please use the return portal within 30 days."
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 574,
+              "endLine": 592,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_kvqcWMxMEB",
+              "status": "shipped",
+              "updatedAt": "2026-09-27T04:05:08.304Z"
+            },
+            "after": {
+              "id": "ord_kvqcWMxMEB",
+              "status": "shipped",
+              "updatedAt": "2026-09-27T04:05:08.304Z"
+            },
+            "timestamp": "2026-09-27T04:05:08.306Z"
+          },
+          {
+            "id": "evt_kvqcWMxMEB_03",
+            "sequence": 3,
+            "parentId": "evt_kvqcWMxMEB_01",
+            "role": "completion",
+            "kind": "run_complete",
+            "label": "Run complete — cancellation refused",
+            "outcome": "refused",
+            "observedData": {
+              "cancelAccepted": false,
+              "refusalReason": "Order has already been dispatched. Please use the return portal within 30 days.",
+              "notificationsCreated": 0,
+              "workerInvoked": false
+            },
+            "sourceRef": {
+              "file": "packages/api/src/runs.ts",
+              "startLine": 594,
+              "endLine": 609,
+              "sourceRevision": "9d4efcb825c507e0a4fc40c22ad048193979c2cd368e5685ba5eb348b6737a09"
+            },
+            "before": {
+              "id": "ord_kvqcWMxMEB",
+              "status": "shipped",
+              "updatedAt": "2026-09-27T04:05:08.304Z"
+            },
+            "after": {
+              "id": "ord_kvqcWMxMEB",
+              "status": "shipped",
+              "updatedAt": "2026-09-27T04:05:08.304Z"
+            },
+            "timestamp": "2026-09-27T04:05:08.308Z"
+          }
+        ],
+        "beforeState": {
+          "id": "ord_kvqcWMxMEB",
+          "status": "shipped",
+          "updatedAt": "2026-09-27T04:05:08.304Z"
+        },
+        "afterState": {
+          "id": "ord_kvqcWMxMEB",
+          "status": "shipped",
+          "updatedAt": "2026-09-27T04:05:08.304Z"
+        }
+      },
+      "orders": [
+        {
+          "id": "ord_kvqcWMxMEB",
+          "run_id": "run_kvqcWMxMEB",
+          "customer_id": "cust_synthetic",
+          "item": "Widget A",
+          "quantity": 1,
+          "status": "shipped",
+          "created_at": "2026-09-27T04:05:08.304Z",
+          "updated_at": "2026-09-27T04:05:08.304Z"
+        }
+      ],
+      "jobs": [],
+      "notifications": []
+    }
+  ]
+}

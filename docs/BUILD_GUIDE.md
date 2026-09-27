@@ -4,9 +4,9 @@ Latest verification: GPT-6 Luna Extra High fixes for REVIEW-02 are implemented. 
 
 ## Where I am
 
-Current checkpoint: **02 analysis corrections** — genuine Bob calls and two saved drafts verified. See docs/REVIEW-03.md: correct overclaims/timestamps and complete get_source after refreshing Bob's cached tool schema.
+Current checkpoint: **03 UI handoff** — corrected Bob analysis content approved against current source and persisted runs. Bob's final report confirms get_source still failed and read_file was used; disclose this fallback. Updated consumption summary remains pending. See docs/REVIEW-03.md.
 Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
-Next action: Refresh the dcnstrct MCP connection, then continue the same Bob task with docs/bob-tasks/02c-analysis-corrections.md. No server restart, scaffolding or application edits. Save an updated task consumption summary after the continuation; proceed to UI after correction review.
+Next action: GPT-6 Luna Extra High implements the scoped UI integration using docs/bob-tasks/03-ui.md and reviewed corrected-records.json. User saves the updated Bob consumption summary. No further Bob retry is needed before UI; reserve remaining coins until actual updated consumption is known.
 Last passing checks: `npm test` → 61/61 (38 API + 23 MCP); `npm run typecheck` → all 4 packages clean; full `npm run build` passes including Vite and MCP; `npm run smoke:mcp` passes. Vite bundle: 146.68 kB (47.20 kB gzip).
 Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Verified MCP implementation commit: 0ce32b1. Task 02B evidence and review are recorded separately; full checkpoint 02 approval awaits the focused corrections.
 Public repository: https://github.com/emmaGH1/Dcnstrct
@@ -113,7 +113,7 @@ save_analysis(analysis=<JSON string matching AnalysisSchema>)
 
 ## Gaps at checkpoint 02 exit
 
-- Bob has saved both draft analyses through MCP; current revisions and persisted outcomes match. Draft copy/provenance corrections and successful Bob get_source calls remain. Screenshot inspected; 35.14 Bobcoins recorded across tasks, approximately 4.86 left if no other usage.
+- Bob saved both corrected analyses; content/references/current source/persisted outcomes verified. Updated task summary and successful Bob get_source tool history remain to be captured. Earlier screenshot records 35.14 total Bobcoins; continuation consumption is not yet verified.
 - UI is a minimal functional scaffold (raw event table). Checkpoint 03 deliverable.
 - Visitor reset is now run-scoped (Finding 4 resolved); global reset still accessible in dev/demo.
 
