@@ -89,38 +89,81 @@ function WorkspacePreview() {
   </figure>;
 }
 
+function useScrollReveal(root: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const elements = Array.from(root.current?.querySelectorAll<HTMLElement>("[data-reveal]") ?? []);
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motionPreference.matches || !("IntersectionObserver" in window)) return;
+    const reveal = (element: HTMLElement) => { element.dataset.revealState = "visible"; };
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        reveal(entry.target as HTMLElement);
+        observer.unobserve(entry.target);
+      }
+    }, { rootMargin: "0px 0px -32px 0px", threshold: 0 });
+    for (const element of elements) {
+      // Keep the first screen visible; only reveal content that starts below it.
+      if (element.getBoundingClientRect().top < window.innerHeight) continue;
+      element.dataset.revealState = "pending";
+      observer.observe(element);
+    }
+    const revealAll = () => {
+      if (!motionPreference.matches) return;
+      elements.forEach(reveal);
+      observer.disconnect();
+    };
+    const revealFocused = (event: FocusEvent) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      const element = event.target.closest<HTMLElement>("[data-reveal]");
+      if (element) { reveal(element); observer.unobserve(element); }
+    };
+    const container = root.current;
+    container?.addEventListener("focusin", revealFocused);
+    motionPreference.addEventListener("change", revealAll);
+    return () => {
+      observer.disconnect();
+      motionPreference.removeEventListener("change", revealAll);
+      container?.removeEventListener("focusin", revealFocused);
+      elements.forEach((element) => { delete element.dataset.revealState; });
+    };
+  }, [root]);
+}
+
 function Landing({ onNavigate }: { onNavigate: (path: string) => void }) {
+  const landingRef = useRef<HTMLElement>(null);
+  useScrollReveal(landingRef);
   const go = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => { event.preventDefault(); onNavigate(path); };
   return <>
     <SiteHeader page="landing" onNavigate={onNavigate} />
-    <main className="landing-page">
+    <main className="landing-page" ref={landingRef}>
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero-content"><h1 id="hero-title" aria-label="Understand what happens and the journey behind it."><span className="hero-line">Understand what happens</span><span className="hero-line hero-line-paired"><span className="hero-prefix">and the</span><WordPill /><span className="hero-suffix">behind it.</span></span></h1>
           <p className="hero-copy">Try an action. Follow what happened. Explore the evidence with IBM Bob.</p>
           <div className="hero-actions"><a className="cta cta-large" href="/demo" onClick={go("/demo")}>Explore demo <CircleArrow /></a></div>
-        </div><div className="hero-preview" id="product"><WorkspacePreview /></div>
+        </div><div className="hero-preview" id="product" data-reveal><WorkspacePreview /></div>
       </section>
 
       <section className="landing-section how-section" id="how-it-works">
-        <div className="section-heading"><h2>From action to understanding.</h2><p>Follow one real action through the decisions and records it leaves behind.</p></div>
-        <div className="how-layout"><p className="how-lead">You do the thing a user would do. Dcnstrct captures what the application actually does next, then helps you connect each step to evidence.</p>
+        <div className="section-heading" data-reveal><h2>From action to understanding.</h2><p>Follow one real action through the decisions and records it leaves behind.</p></div>
+        <div className="how-layout" data-reveal><p className="how-lead">You do the thing a user would do. Dcnstrct captures what the application actually does next, then helps you connect each step to evidence.</p>
           <div className="how-steps"><article><span className="neutral-number">01</span><div><h3>Try an action</h3><p>Cancel a synthetic order before fulfillment or after shipment.</p></div></article><article><span className="neutral-number">02</span><div><h3>Follow its journey</h3><p>See the policy decision, database changes, notification and worker outcome.</p></div></article><article><span className="neutral-number">03</span><div><h3>Inspect the evidence</h3><p>Move from an observed step to the source and a recorded IBM Bob explanation.</p></div></article></div>
         </div>
       </section>
 
       <section className="landing-section paths-section" id="paths">
-        <div className="section-heading"><h2>Timing changes the outcome.</h2><p>Both paths begin with the same action. The order's state decides what happens next.</p></div>
-        <div className="path-pair"><article className="path-card path-accepted"><div><span className="path-kicker">BEFORE FULFILLMENT</span><h3>Cancellation accepted</h3><p>The order is preparing, so cancellation is allowed. A notification is saved and the worker skips shipment after reading the current state.</p></div><a href="/demo?scenario=cancel_preparing" onClick={go("/demo?scenario=cancel_preparing")}>Explore this path <span aria-hidden="true">↗</span></a></article><article className="path-card path-refused"><div><span className="path-kicker">AFTER SHIPMENT</span><h3>Cancellation refused</h3><p>The order has shipped. The request is refused and the order stays shipped; the return boundary is explained.</p></div><a href="/demo?scenario=cancel_shipped" onClick={go("/demo?scenario=cancel_shipped")}>Explore this path <span aria-hidden="true">↗</span></a></article></div>
+        <div className="section-heading" data-reveal><h2>Timing changes the outcome.</h2><p>Both paths begin with the same action. The order's state decides what happens next.</p></div>
+        <div className="path-pair" data-reveal><article className="path-card path-accepted"><div><span className="path-kicker">BEFORE FULFILLMENT</span><h3>Cancellation accepted</h3><p>The order is preparing, so cancellation is allowed. A notification is saved and the worker skips shipment after reading the current state.</p></div><a href="/demo?scenario=cancel_preparing" onClick={go("/demo?scenario=cancel_preparing")}>Explore this path <span aria-hidden="true">↗</span></a></article><article className="path-card path-refused"><div><span className="path-kicker">AFTER SHIPMENT</span><h3>Cancellation refused</h3><p>The order has shipped. The request is refused and the order stays shipped; the return boundary is explained.</p></div><a href="/demo?scenario=cancel_shipped" onClick={go("/demo?scenario=cancel_shipped")}>Explore this path <span aria-hidden="true">↗</span></a></article></div>
         <p className="synthetic-note">Synthetic sample scenarios. Each outcome is captured from an actual run.</p>
       </section>
 
-      <section className="landing-section bob-section" id="bob">
+      <section className="landing-section bob-section" id="bob" data-reveal>
         <div className="bob-copy"><h2>Evidence first. Explained with IBM Bob.</h2><p>Bob interpreted recorded events and relevant source during a real local MCP session. Each explanation points back to the run's events and source references.</p><p className="bob-disclosure">The explanations shown in the demo are recorded interpretations. They are matched against the current scenario and source revision before display.</p><a href="https://github.com/emmaGH1/Dcnstrct" target="_blank" rel="noreferrer" className="text-link">Explore the project <span aria-hidden="true">↗</span></a></div>
         <div className="bob-art-wrap"><img className="bob-art" src="/brand/ibm-bob-mascot-cutout.png" alt="IBM Bob mascot" /></div>
         <div className="bob-evidence"><article><span className="evidence-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4v9h13m-5-5 5 5-5 5" /></svg></span><div><h3>Observed events</h3><p>What the run recorded at each step.</p></div></article><article><span className="evidence-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7zM14 3v5h4M10 12h5M10 16h5" /></svg></span><div><h3>Relevant source</h3><p>The allowlisted code behind an operation.</p></div></article></div>
       </section>
 
-      <section className="final-invitation"><h2>Understand what happens behind an action.</h2><a className="cta cta-large" href="/demo" onClick={go("/demo")}>Explore demo <CircleArrow /></a></section>
+      <section className="final-invitation" data-reveal><h2>Understand what happens behind an action.</h2><a className="cta cta-large" href="/demo" onClick={go("/demo")}>Explore demo <CircleArrow /></a></section>
     </main>
     <footer className="site-footer"><div className="footer-brand"><Logo compact /><p>Explore. Understand. Go further.</p></div><div className="footer-column"><h2>Explore</h2><a href="#how-it-works">How it works</a><a href="#paths">Cancellation paths</a><a href="/demo" onClick={go("/demo")}>Interactive demo</a></div><div className="footer-column"><h2>Project</h2><a href="https://github.com/emmaGH1/Dcnstrct" target="_blank" rel="noreferrer">GitHub repository</a><a href="#bob">IBM Bob workflow</a></div><p className="footer-note">Synthetic data for demonstration<br />Recorded IBM Bob interpretations</p></footer>
   </>;

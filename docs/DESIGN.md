@@ -52,3 +52,7 @@ Support keyboard navigation, visible focus, reduced motion, stable hero copy for
 ## Current media and verification gaps
 
 A real workspace screenshot is saved and displayed in the hero. No playable demo video is packaged yet; omit dead play controls. The static screenshot is a historical sample run, not the current visitor’s live state. The Bob cutout is implemented; official asset licensing still needs packaging review. Hosting, persistence on the selected host and submission remain later checkpoints.
+
+## Scroll motion polish
+
+Use small once-only fades and 16px upward reveals (520ms, eased) for the preview and lower landing content. Leave the first screen immediately visible; preserve natural scrolling and the approved layout. Keep content visible without JavaScript/observer support, reveal it on keyboard focus, and disable nonessential reveals for reduced-motion preferences. Do not add scroll locking, parallax or motion dependencies.
