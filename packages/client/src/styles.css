@@ -70,8 +70,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid #66558a; outline-offs
 .tone-sand .pill-dot { background: #806c43; }.tone-peach .pill-dot { background: #a65e41; }.tone-sage .pill-dot { background: #496e4d; }.tone-sky .pill-dot { background: #55768f; }
 .hero-copy { max-width: 780px; margin: 28px auto 24px; color: #353731; font-size: clamp(16px, 1.35vw, 22px); line-height: 1.5; }
 .hero-actions { display: flex; justify-content: center; }
-.hero-preview { width: min(67vw, 1120px); margin: 78px auto 0; scroll-margin-top: 105px; }
-.preview-frame { position: relative; margin: 0; overflow: hidden; text-align: left; background: #fff; border-radius: 12px; box-shadow: 0 12px 45px rgb(23 25 22 / 8%); }
+.hero-preview { position: relative; isolation: isolate; width: min(67vw, 1120px); margin: 78px auto 0; scroll-margin-top: 105px; }
+.preview-bob-peek { position: absolute; right: 3%; bottom: calc(100% - 12px); width: clamp(82px, 11vw, 168px); aspect-ratio: 1.15; overflow: hidden; pointer-events: none; }
+.preview-bob-peek img { display: block; width: 100%; height: auto; }
+.preview-frame { position: relative; z-index: 1; margin: 0; overflow: hidden; text-align: left; background: #fff; border-radius: 12px; box-shadow: 0 12px 45px rgb(23 25 22 / 8%); }
 .preview-window-bar { display: flex; align-items: center; gap: 17px; height: 38px; padding: 0 15px; background: #f6f6f4; border-bottom: 1px solid #eeeee9; color: #62655e; font-size: 11px; }
 .window-dots { display: flex; gap: 5px; }.window-dots i { width: 8px; height: 8px; border-radius: 50%; background: #d9d9d5; }
 .preview-placeholder-label { margin-left: auto; font-size: 10px; }
@@ -130,7 +132,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #66558a; outline-offs
   .hero-line-paired { gap: .16em; margin-top: .13em; }
   .word-pill { width: max-content; }
   .hero-copy { max-width: 32ch; margin: 24px auto 22px; font-size: 15px; }
-  .hero-preview { width: 100%; margin-top: 55px; }
+  .hero-preview { width: 100%; margin-top: 78px; }
   .preview-window-bar { padding: 0 10px; gap: 10px; font-size: 9px; }
   .preview-placeholder-label { font-size: 8px; }
   .preview-frame figcaption { font-size: 10px; }

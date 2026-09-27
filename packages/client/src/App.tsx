@@ -141,7 +141,7 @@ function Landing({ onNavigate }: { onNavigate: (path: string) => void }) {
         <div className="hero-content"><h1 id="hero-title" aria-label="Understand what happens and the journey behind it."><span className="hero-line">Understand what happens</span><span className="hero-line hero-line-paired"><span className="hero-prefix">and the</span><WordPill /><span className="hero-suffix">behind it.</span></span></h1>
           <p className="hero-copy">Try an action. Follow what happened. Explore the evidence with IBM Bob.</p>
           <div className="hero-actions"><a className="cta cta-large" href="/demo" onClick={go("/demo")}>Explore demo <CircleArrow /></a></div>
-        </div><div className="hero-preview" id="product" data-reveal><WorkspacePreview /></div>
+        </div><div className="hero-preview" id="product" data-reveal><span className="preview-bob-peek" aria-hidden="true"><img src="/brand/ibm-bob-mascot-cutout.png" alt="" /></span><WorkspacePreview /></div>
       </section>
 
       <section className="landing-section how-section" id="how-it-works">

@@ -6,6 +6,15 @@ The backend performs the real synthetic operations and stores runs in SQLite. Ve
 
 Create a Blueprint from https://github.com/emmaGH1/Dcnstrct, branch main, using render.yaml. Review the service and disk charges yourself before creating it: Render persistent disks require a paid service. The prepared Blueprint selects Starter and a 1 GB disk; it does not purchase or create anything by itself.
 
+A Blueprint means Render reads the settings already saved in this repository. You do not need to write YAML or upload a file:
+
+1. Sign in at https://dashboard.render.com.
+2. Click New, then Blueprint.
+3. Connect GitHub if prompted; select emmaGH1/Dcnstrct.
+4. Give the Blueprint a name such as Dcnstrct, choose main, and leave Blueprint Path as render.yaml.
+5. Review the proposed dcnstrct-api service and 1 GB disk, including their charges.
+6. Click Deploy Blueprint when you accept those charges. Wait for the service to become Live, then copy its onrender.com HTTPS URL.
+
 The settings are:
 
 - Repository root: leave blank (use the whole repository).

@@ -56,3 +56,5 @@ A real workspace screenshot is saved and displayed in the hero. No playable demo
 ## Scroll motion polish
 
 Use small once-only fades and 16px upward reveals (520ms, eased) for the preview and lower landing content. Leave the first screen immediately visible; preserve natural scrolling and the approved layout. Keep content visible without JavaScript/observer support, reveal it on keyboard focus, and disable nonessential reveals for reduced-motion preferences. Do not add scroll locking, parallax or motion dependencies.
+
+The user requested an additional decorative Bob head peeking over the hero preview’s top-right edge. Reuse the transparent cutout through CSS clipping behind the frame; keep it smaller on phones, hidden from assistive technology, and away from the CTA. This is artwork, not a live Bob indicator.
