@@ -12,7 +12,9 @@
     "build": "npm run build -w packages/shared && npm run build -w packages/api && npm run build -w packages/client && npm run build -w packages/mcp",
     "test": "npm run test -w packages/api && npm run test -w packages/mcp",
     "typecheck": "npm run typecheck -w packages/shared && npm run typecheck -w packages/api && npm run typecheck -w packages/client && npm run typecheck -w packages/mcp",
-    "smoke:mcp": "node scripts/mcp-transport-smoke.mjs"
+    "smoke:mcp": "node scripts/mcp-transport-smoke.mjs",
+    "build:vercel": "node scripts/vercel-build.mjs",
+    "check:deployment": "node scripts/deployment-smoke.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

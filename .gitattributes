@@ -1,0 +1,7 @@
+# Preserve the exact evidence source bytes across Windows and Linux checkouts.
+packages/api/src/scenarios.ts text eol=lf
+packages/api/src/db.ts text eol=lf
+packages/api/src/routes.ts text eol=lf
+packages/api/src/runs.ts text eol=lf
+packages/shared/src/contracts.ts text eol=lf
+packages/shared/src/source-revision.ts text eol=lf

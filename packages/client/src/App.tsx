@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ScenarioSchema, ScenarioIdSchema, RunSchema, type Run, type RunEvent, type Scenario, type ScenarioId } from "@dcnstrct/contracts";
 import { AnalysisResponseSchema, RunResultSchema, SourceExcerptSchema, type AnalysisResponse, type SourceExcerpt } from "@dcnstrct/ui-contracts";
 
-const API = "/api";
+const API = `${(import.meta.env.VITE_API_ORIGIN ?? "").replace(/\/$/, "")}/api`;
 const WORDS = [
   { word: "journey", tone: "lavender" }, { word: "logic", tone: "sand" },
   { word: "decisions", tone: "peach" }, { word: "effects", tone: "sage" }, { word: "evidence", tone: "sky" },

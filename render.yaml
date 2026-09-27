@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: dcnstrct-api
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/scenarios
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /data/dcnstrct.db
+    disk:
+      name: dcnstrct-data
+      mountPath: /data
+      sizeGB: 1
