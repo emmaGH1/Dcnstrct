@@ -1,6 +1,6 @@
 # Dcnstrct — start here
 
-Last verified September 27, 2026, 01:50 WAT. Checkpoint 01 review passed for tests/typecheck/build; a Bob follow-up is required for two semantics gaps. Update after every checkpoint.
+Last verified September 27, 2026, 01:54 WAT. Checkpoint 01 review passed for tests/typecheck/build; a Bob follow-up is required for two semantics gaps. Update after every checkpoint.
 
 ## Where I am
 
@@ -8,7 +8,7 @@ Current checkpoint: 01 review — resolve listed gaps before MCP.
 Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
 Next action: start a fresh Bob follow-up from docs/bob-tasks/02-mcp.md; ask it to fix source revision and address worker_ship coverage before MCP work.
 Last passing checks: `npm test` → 31/31 including citation allowlist/path/bounds; `npm run typecheck` → all packages clean; `npm run build` → all packages and Vite production bundle pass outside the filesystem sandbox; `git diff --check` clean.
-Baseline commit: f58da4f (harness). Checkpoint 01 commit: pending after Bob follows up on source revision and unreachable worker_ship claim.
+Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9 (core prototype; caveats documented below).
 Public repository: https://github.com/emmaGH1/Dcnstrct
 
 ## Runtime notes
@@ -107,7 +107,7 @@ Sources: [event](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon), [guide](h
 
 | Time WAT | Task | Actual commands/result | Commit | Summary PNG | Next action/blocker |
 | --- | --- | --- | --- | --- | --- |
-| 01:50 WAT | 01 Core review | `npm test` 31/31 incl. citation path/bounds checks; typecheck all packages clean; production build passes outside sandbox; diff check clean | pending | completion report pages captured; required consumption summary pending | resolve source revision/worker coverage; then MCP |
+| 01:54 WAT | 01 Core review | `npm test` 31/31 incl. citation path/bounds checks; typecheck all packages clean; production build passes outside sandbox; diff check clean | 6a1e7d9 pushed | completion report pages captured; required consumption summary pending | resolve source revision/worker coverage; then MCP |
 
 Current task: 01 Core — Bob reports complete; Codex review is still in progress.
 What worked: node:sqlite (built-in) removes native build dependency; ts-jest moduleNameMapper resolves shared package; all 31 tests pass first run after typecheck fixes.
