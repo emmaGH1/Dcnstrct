@@ -4,6 +4,8 @@
 
 Use the approved light concept: a warm cream page, bold black typography, spacious centered composition and pastel-green primary calls to action. Follow the supplied Notion reference closely for hero proportions, navigation alignment, capsule shape and spacing. Keep Dcnstrct copy and assets. The user rejected the previous first-screen implementation and authorized this focused rebuild.
 
+Use the supplied Dcnstrct logo unchanged for the browser favicon, Apple touch icon and Open Graph/Twitter preview image. Keep the title and description accurate to the product; point social-image metadata to a public absolute URL for this exact logo asset. Do not redraw or substitute the logo. If the public host or asset URL changes, update the preview URL with it.
+
 - Canvas: `#FAFAF7`; surfaces: white; primary text: `#171916`; secondary text: `#595D56`; borders: `#DEDDD5`.
 - Primary CTA: pastel green `#BDE4C2` with dark text and a black circular arrow. Reserve green primarily for actions and clear success states.
 - Journey numbers use pale stone with charcoal text. Selected journey steps use a light lavender highlight. Status meaning must remain clear without color alone.
