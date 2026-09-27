@@ -6,12 +6,14 @@ Latest verification: GPT-6 Luna Extra High fixes for REVIEW-02 are implemented. 
 
 Current checkpoint: **03 UI handoff** — corrected Bob analysis content approved against current source and persisted runs. Bob's final report confirms get_source still failed and read_file was used; disclose this fallback. Updated consumption summary remains pending. See docs/REVIEW-03.md.
 Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
-Next action: GPT-6 Luna Extra High implements the scoped UI integration using docs/bob-tasks/03-ui.md and reviewed corrected-records.json. User saves the updated Bob consumption summary. No further Bob retry is needed before UI; reserve remaining coins until actual updated consumption is known.
+Next action: GPT-6 Luna Extra High implements the detailed UI plan in docs/bob-tasks/03-ui.md using reviewed corrected-records.json. UI design decisions are recorded in docs/DESIGN.md: cream/teal light theme, multicolor rotating word pill, five-section landing and separate scrolling workspace. Build safe analysis/source HTTP delivery first, workspace second, landing third, then real integration/responsive checks. No demo video asset is confirmed; use a real workspace screenshot until footage exists. No further Bob retry is needed before UI; reserve remaining coins until actual updated consumption is known. A new final-summary PNG is present but not inspected in this planning task; its consumption/evidence status must not be inferred from its filename.
 Last passing checks: `npm test` → 61/61 (38 API + 23 MCP); `npm run typecheck` → all 4 packages clean; full `npm run build` passes including Vite and MCP; `npm run smoke:mcp` passes. Vite bundle: 146.68 kB (47.20 kB gzip).
 Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Verified MCP implementation commit: 0ce32b1. Task 02B evidence and review are recorded separately; full checkpoint 02 approval awaits the focused corrections.
 Public repository: https://github.com/emmaGH1/Dcnstrct
 
 ## Runtime notes
+
+UI planning handoff: application files unchanged. Reviewed current client, HTTP routes, source allowlist, corrected recording structure and latest review. Changes in this task are DESIGN.md, bob-tasks/03-ui.md and this guide only; no application tests or builds rerun for documentation planning. Current scaffold has no browser analysis/source endpoints and fetches a run once; Luna must implement real response validation and conditional polling. Full checkpoint 03 remains pending implementation and Codex review.
 
 - SQLite: uses built-in `node:sqlite` (Node 24.16+). No native build required, no better-sqlite3.
 - DB_PATH: defaults to `packages/api/data/dcnstrct.db` (created on first run). Set `DB_PATH=:memory:` for ephemeral/test. MCP server reads the same file.

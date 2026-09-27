@@ -1,10 +1,28 @@
 # Dcnstrct design contract
 
-Use the user-supplied .hackathon/DESIGN-INSPO.md: warm paper #f6f5f4, white surfaces, black ink, blue #0075de primary action, hairline borders, 12px cards and generous spacing. No gradients or pervasive shadows. User reference overrides generic skill font defaults; Inter is the suggested substitute. Do not bundle proprietary Notion fonts or copy its branding/text/testimonials.
+User-approved direction from the UI planning conversation: borrow the spacious centered hero and large product preview from .hackathon/DESIGN-INSPO.md, then express Dcnstrct's own identity. The reference is inspiration, not a requirement to reproduce Notion's colors, copy, illustrations or interface. No gradients or pervasive shadows. Inter is the suggested font; do not bundle proprietary Notion fonts or copy branding/text/testimonials.
+
+## Palette and visual language
+
+Page canvas #F7F5F0 (subtle cream); white #FFFFFF card/video surfaces; primary text #191919; secondary text #625F59; borders #E3DFD6; primary action #0F766E; teal tint #DCEEE8. Keep white cards distinct from the cream canvas. Hairline borders, 12px cards, 8px buttons and generous spacing. Light theme only for this checkpoint. Keep success/refusal/failure semantics consistent; decorative hero colors never redefine status colors.
+
+Suggested rotating-pill pairs (background / dot): journey #DCEEE8 / #0F766E, logic #ECE3F7 / #7552A3, decisions #F8E3D6 / #AE6138, effects #E0EDF7 / #386F9B, evidence #F4EACD / #8D6A17. Text remains #191919. These exact supplementary shades are implementation suggestions; verify contrast in the actual render.
 
 Use supplied logo unchanged at public/brand/dcnstrct-logo.png; preserve aspect ratio and white background. Product name Dcnstrct. Confirm supplied asset provenance before public submission.
 
-Landing: compact logo/nav; centered editorial headline "Understand what happens behind an action"; short explanation; Explore demo button; actual product preview once built; three-step explanation and authentic Bob workflow section. No fictitious customers.
+## Landing: five sections
+
+Compact navigation and footer are outside the five main sections. Landing / and interactive workspace /demo are distinct views; use existing React/Vite stack and support Back/Forward and direct links.
+
+1. Hero + video preview: centered two-line headline "Understand the [journey] behind an action." Pill cycles journey -> logic -> decisions -> effects -> evidence, changing background and dot together. Hold each word about three seconds; use a short slide/fade with no layout shift. Reserve enough width for the longest word. A subtle mark may reference the execution journey without copying Notion's characters. Supporting text: "Try an action. Follow what happened. Explore the source and evidence with explanations from IBM Bob." Primary Explore demo; secondary Watch walkthrough only when a real playable asset exists. Large actual product preview underneath.
+2. How it works: Try an action -> Follow the journey -> Inspect the evidence. Three concise steps with purposeful visuals.
+3. One action, two outcomes: cancellation before fulfillment succeeds; after shipment it is refused. Clearly describe synthetic sample scenarios; link to their workspace choices.
+4. How IBM Bob helps explain it: describe actual observed events and relevant source, evidence-linked interpretation and recorded delivery. Disclose the demonstrated workflow's source-read fallback in accessible workflow details: Bob list/get/save through MCP; get_source failed and Bob used read_file. No claim of successful Bob get_source or live hosted generation.
+5. Final invitation: short closing copy and Explore demo. Footer includes verified GitHub link and project information, no customer-logo wall.
+
+Video is a progressive asset dependency, not a reason to block UI. Use a real screenshot from the built app as the poster until footage exists; do not invent a video, fake screenshot or dead play control. Once available, play the narrated demo on user request with controls and captions. An optional brief muted preview requires an accessible pause control and a still reduced-motion fallback. Video production and deployment are separate checkpoints.
+
+Hero animation needs a pause/resume control, stops when offscreen/hidden, and shows static journey for reduced motion. Screen readers receive a stable complete headline rather than announcements every three seconds. Keep pill and surrounding words readable at 375px; simplify line wrapping rather than shrinking everything. No fictitious customers, measurements or contribution percentages.
 
 ## Workspace: guided scrolling exploration
 Natural page height, not a locked 100vh three-pane view. Compact sticky header and step anchors; max-width about 1200px.
