@@ -1,5 +1,17 @@
 # Dcnstrct design contract
 
+## Latest user revision — supersedes earlier visual details below
+
+After viewing the first concepts, user rejected the teal/green theme and timid scale. Keep the cream canvas, but use a cleaner blue primary accent (proposed #006FE8) and substantially bolder ink typography. Favor the reference's confident editorial scale and spacious composition. Center two or three nav links between the product mark at left and Explore demo at right. Remove the visible hero word/color legend entirely. Do not put a prominent pause button beside Explore demo: provide a discreet accessible animation pause control near the pill or in motion preferences, plus static reduced-motion behavior.
+
+The rotating pill must sit in the middle of the headline, with fixed text to its left and right. Latest concept uses three centered lines: Understand / the [journey] behind / an action. Preserve the sentence and five rotating words; adapt line breaks to actual available width. Word and pill/dot color change together. No detached word or color legend.
+
+Make useful landing sections more substantial, roughly 50–70vh minimum on desktop where content benefits, with content-driven growth; do not force every section or mobile layout to a viewport height. Expand how-it-works into generous explanatory steps, make the Bob section a focal editorial composition, and give the footer clear Explore/Project groupings. Preserve the real scrolling workspace sequence while improving typography, blue selection/action accents and immediate explanation of the user's task.
+
+User explicitly wants standalone Bob artwork with no black rectangle/tile in landing or workspace. The original supplied asset remains unchanged; create a separate background-removed derivative using image editing before implementation and inspect edge quality. That derivative is NOT yet supplied by these concept mockups. Preserve original mascot colors/shape. Prior instructions requiring a dark tile are superseded.
+
+Private v2 mockups: .hackathon/ui-previews/landing-concept-v2.png and workspace-concept-v2.png. Generated images are layout inspiration only; their recreated logos, wording, fake IDs/source snippets or simplified events are not authoritative. Use actual supplied logo, validated events/source and recorded provenance in the app. The hero must still accommodate the large actual workspace screenshot/video preview; the simplified diagram in v2 is not a replacement requirement. These concepts remain subject to user visual feedback and real browser review.
+
 User-approved direction from the UI planning conversation: borrow the spacious centered hero and large product preview from .hackathon/DESIGN-INSPO.md, then express Dcnstrct's own identity. The reference is inspiration, not a requirement to reproduce Notion's colors, copy, illustrations or interface. No gradients or pervasive shadows. Inter is the suggested font; do not bundle proprietary Notion fonts or copy branding/text/testimonials.
 
 ## Palette and visual language
