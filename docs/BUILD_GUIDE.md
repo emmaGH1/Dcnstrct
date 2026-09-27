@@ -1,6 +1,6 @@
 # Dcnstrct — start here
 
-Last verified September 27, 2026, 01:54 WAT. Checkpoint 01 review passed for tests/typecheck/build; a Bob follow-up is required for two semantics gaps. Update after every checkpoint.
+Last verified September 27, 2026, 01:54 WAT. Checkpoint 01 automated checks pass; a separate GPT-6 Sol review is still pending per the user's model preference. A Bob follow-up is also required for two semantics gaps.
 
 ## Where I am
 
@@ -107,9 +107,9 @@ Sources: [event](https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon), [guide](h
 
 | Time WAT | Task | Actual commands/result | Commit | Summary PNG | Next action/blocker |
 | --- | --- | --- | --- | --- | --- |
-| 01:54 WAT | 01 Core review | `npm test` 31/31 incl. citation path/bounds checks; typecheck all packages clean; production build passes outside sandbox; diff check clean | 6a1e7d9 pushed | completion report pages captured; required consumption summary pending | resolve source revision/worker coverage; then MCP |
+| 01:54 WAT | 01 Core checks | `npm test` 31/31 incl. citation path/bounds checks; typecheck all packages clean; production build passes outside sandbox; diff check clean | 6a1e7d9 pushed | completion report pages captured; required consumption summary pending | GPT-6 Sol review; resolve source revision/worker coverage; then MCP |
 
-Current task: 01 Core — Bob reports complete; Codex review is still in progress.
+Current task: 01 Core — Bob reports complete; automated checks are green. Independent GPT-6 Sol review is pending.
 What worked: node:sqlite (built-in) removes native build dependency; ts-jest moduleNameMapper resolves shared package; all 31 tests pass first run after typecheck fixes.
 What failed: better-sqlite3 native build (no MSVC/Visual Studio on this machine) — switched to node:sqlite. rootDir tsconfig constraint needed removal for workspace cross-package imports.
 Files to inspect: packages/api/src/runs.ts (execution core), packages/api/src/__tests__/core.test.ts (all checks), packages/shared/src/contracts.ts (runtime contracts).

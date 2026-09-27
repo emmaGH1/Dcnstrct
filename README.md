@@ -4,7 +4,7 @@ Understand an unfamiliar application by following what a user action actually do
 
 Built for the IBM Bob 2.0 hackathon. Demo: follow order cancellation through policy, database, fulfillment worker and notification records. Bob interprets observed evidence together with source through a local MCP workflow.
 
-**Status:** Checkpoint 01 review: 31 tests, all package typechecks, and production build pass. A Bob follow-up still needs to close source revision and unreachable worker-branch claims. The UI is a raw scaffold; genuine MCP integration and deployment are pending.
+**Status:** Checkpoint 01 automated checks pass: 31 tests, all package typechecks, and the production build. A Bob follow-up still needs to close source revision and unreachable worker-branch claims. The UI is a raw scaffold; genuine MCP integration and deployment are pending.
 
 Start with [the living build guide](docs/BUILD_GUIDE.md). Contracts: [product](docs/PRD.md), [architecture](docs/ARCHITECTURE.md), [design](docs/DESIGN.md). Focused Bob prompts: docs/bob-tasks/.
 
