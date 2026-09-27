@@ -10,6 +10,12 @@ Suggested rotating-pill pairs (background / dot): journey #DCEEE8 / #0F766E, log
 
 Use supplied logo unchanged at public/brand/dcnstrct-logo.png; preserve aspect ratio and white background. Product name Dcnstrct. Confirm supplied asset provenance before public submission.
 
+## IBM Bob mascot
+
+User requested the supplied IBM Bob mascot in appropriate UI locations. Asset: public/brand/ibm-bob-mascot.png, copied unchanged from the user's attachment (308x412). It has an opaque #121314 corner/background, not transparency. Preserve original colors and proportions; use a matching small dark illustration tile in the Bob workflow section rather than stretching it or putting a large black rectangle in the cream hero. Keep Dcnstrct's logo as the product identity.
+
+Primary placement: beside section 4, How IBM Bob helps explain it, at approximately 120–160px tall on desktop and smaller on mobile. Secondary placement: optional 28–36px full-mascot thumbnail in the recorded interpretation header, with enough room to remain legible; omit at tiny sizes if it becomes visual noise. Pair with the explicit Recorded IBM Bob interpretation label. Do not use as a floating chat launcher, live-thinking indicator or status marker for actual backend execution. Static artwork is sufficient. Decorative copies use empty alt text when adjacent wording already names Bob; standalone identifying artwork uses IBM Bob mascot. Source/permission attribution remains to be verified during packaging; the user's attachment is not proof of official asset licensing.
+
 ## Landing: five sections
 
 Compact navigation and footer are outside the five main sections. Landing / and interactive workspace /demo are distinct views; use existing React/Vite stack and support Back/Forward and direct links.
