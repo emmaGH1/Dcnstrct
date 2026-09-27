@@ -44,7 +44,6 @@ function Logo({ compact = false }: { compact?: boolean }) {
 
 function WordPill() {
   const [wordIndex, setWordIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(true);
   const [pageVisible, setPageVisible] = useState(() => document.visibilityState === "visible");
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -60,15 +59,14 @@ function WordPill() {
     return () => document.removeEventListener("visibilitychange", updateVisibility);
   }, []);
   useEffect(() => {
-    if (paused || !inView || !pageVisible || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!inView || !pageVisible || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(() => setWordIndex((value) => (value + 1) % WORDS.length), 3300);
     return () => window.clearInterval(timer);
-  }, [paused, inView, pageVisible]);
+  }, [inView, pageVisible]);
   const current = WORDS[wordIndex];
   return <span className="pill-wrap" ref={pillRef}>
-    <span className={`word-pill tone-${current.tone}`} aria-hidden="true" key={current.word}><span className="pill-dot" />{current.word}</span>
+    <span className={`word-pill tone-${current.tone}`} aria-hidden="true" key={current.word}><span className="pill-dot" /><span className="pill-word">{current.word}</span></span>
     <span className="sr-only">journey</span>
-    <button className="motion-toggle" type="button" aria-label={paused ? "Resume changing headline word" : "Pause changing headline word"} onClick={() => setPaused((value) => !value)}><span aria-hidden="true">{paused ? "▶" : "Ⅱ"}</span></button>
   </span>;
 }
 
@@ -84,13 +82,10 @@ function SiteHeader({ page, onNavigate }: { page: Page; onNavigate: (path: strin
 }
 
 function WorkspacePreview() {
-  return <figure className="preview-frame" aria-label="Reserved space for the workspace capture">
-    <div className="preview-window-bar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>Dcnstrct workspace</span><span className="preview-placeholder-label">Preview placeholder</span></div>
-    <div className="preview-skeleton" aria-hidden="true">
-      <div className="skeleton-sidebar"><span className="skeleton-brand" /><span /><span /><span /><span /></div>
-      <div className="skeleton-main"><div className="skeleton-toolbar"><span /><span /></div><div className="skeleton-heading" /><div className="skeleton-subheading" /><div className="skeleton-columns"><div /><div /><div /></div></div>
-    </div>
-    <figcaption>A closer look at the workspace. Capture coming next.</figcaption>
+  return <figure className="preview-frame" aria-label="Dcnstrct workspace screenshot from a synthetic cancellation run">
+    <div className="preview-window-bar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>Dcnstrct workspace</span><span className="preview-placeholder-label">Sample run</span></div>
+    <img className="workspace-capture" src="/previews/workspace-cancellation.jpg" width="1440" height="1000" alt="Dcnstrct workspace showing cancellation accepted, its ordered execution journey and a recorded IBM Bob explanation." />
+    <figcaption>Real workspace capture · Synthetic order cancellation</figcaption>
   </figure>;
 }
 

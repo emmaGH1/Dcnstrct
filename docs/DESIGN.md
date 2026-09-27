@@ -14,9 +14,9 @@ Use the approved light concept: a warm cream page, bold black typography, spacio
 
 The centered header has the slightly enlarged Dcnstrct mark (48px desktop, 40px phone) and wordmark at left, Product / Resources / IBM Bob links in the middle, and Explore demo at right. Resources points to the real project repository. Keep the navigation compact and avoid a redundant Demo link.
 
-The hero reads **“Understand what happens / and the [journey] behind it.”** It uses two centered lines, large bold type, and a rotating word pill between fixed text. Rotate journey, logic, decisions, effects and evidence about every three seconds. Change the pill and its dot together, reserve enough width to prevent jumps, and keep the pause control discreet beside the pill. Stop rotation when the pill is offscreen or the page is hidden; honor reduced-motion preferences and provide a stable accessible headline.
+The hero reads **“Understand what happens / and the [journey] behind it.”** It uses two centered lines, large bold type, and a rotating word pill between fixed text. Rotate journey, logic, decisions, effects and evidence about every three seconds. Change the pill and its dot together. Size the capsule to its current word with consistent padding; use a bold 0.34em dot aligned to the text. The user explicitly requested removal of the pause/play control. Stop rotation when the pill is offscreen or the page is hidden; honor reduced-motion preferences and provide a stable accessible headline.
 
-Center the subtitle and Explore demo CTA beneath the title. The product preview sits below at 67% of the desktop viewport width, capped at 1120px, and uses the available width on mobile. The current preview is an explicitly labeled static workspace skeleton, reserved for a real capture. Replace it only with a real captured interface image or an actual playable demo asset; do not present generated artwork as a real run or video.
+Center the subtitle and Explore demo CTA beneath the title. The product preview sits below at 67% of the desktop viewport width, capped at 1120px, and uses the available width on mobile. The preview uses public/previews/workspace-cancellation.jpg, a real 1440×1000 viewport capture from an accepted synthetic cancellation run, labeled as a sample run. Its natural aspect ratio makes the frame taller than the previous skeleton. Replace it only with a real captured interface image or an actual playable demo asset; do not present generated artwork as a real run or video.
 
 The landing page has five substantial, content-led sections:
 
@@ -51,4 +51,4 @@ Support keyboard navigation, visible focus, reduced motion, stable hero copy for
 
 ## Current media and verification gaps
 
-No real demo video or saved workspace screenshot is confirmed yet. Keep the reserved hero frame explicitly marked as a preview placeholder and omit any dead play control. Capture the built interface from an actual synthetic run before replacing that illustration. The Bob cutout is implemented; official asset licensing still needs packaging review. Hosting, persistence on the selected host and submission remain later checkpoints.
+A real workspace screenshot is saved and displayed in the hero. No playable demo video is packaged yet; omit dead play controls. The static screenshot is a historical sample run, not the current visitor’s live state. The Bob cutout is implemented; official asset licensing still needs packaging review. Hosting, persistence on the selected host and submission remain later checkpoints.
