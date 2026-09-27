@@ -27,3 +27,4 @@ Thumbs.db
 HANDOFF.md
 local-data/
 *.log
+packages/api/data/
