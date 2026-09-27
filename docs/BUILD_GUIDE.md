@@ -1,14 +1,14 @@
 # Dcnstrct — start here
 
-Latest verification: GPT-6 Luna Extra High fixes for REVIEW-02 are implemented. `npm test` passes 61 tests (38 API, 23 MCP); `npm run typecheck` passes all four packages; the full root production build passes when Vite is allowed its required filesystem access; the MCP stdio smoke passes. See docs/REVIEW-02.md for the review scope. Bob IDE has not yet called the tools or saved analyses, so checkpoint 02's real Bob contribution remains pending.
+Latest verification: GPT-6 Luna Extra High fixes for REVIEW-02 are implemented. `npm test` passes 61 tests (38 API, 23 MCP); `npm run typecheck` passes all four packages; the full root production build passes when Vite is allowed its required filesystem access; the MCP stdio smoke passes. Task 02B now demonstrates genuine Bob calls and two persisted analyses. Review found draft corrections and incomplete MCP source reads; see docs/REVIEW-03.md. Application source remains unchanged since these passing checks.
 
 ## Where I am
 
-Current checkpoint: **02 MCP handoff** — implementation and transport verified; awaiting genuine IBM Bob IDE calls and two saved analyses.
+Current checkpoint: **02 analysis corrections** — genuine Bob calls and two saved drafts verified. See docs/REVIEW-03.md: correct overclaims/timestamps and complete get_source after refreshing Bob's cached tool schema.
 Owner: user operating Bob IDE; Codex maintains harness and reviews after Bob stops.
-Next action: Start a short fresh Bob task using docs/bob-tasks/02b-bob-analysis.md. Use the actual `.bob/mcp.json` server to inspect both scenario runs and save evidence-linked analyses; capture its task summary. Proceed to UI after that evidence is verified.
+Next action: Refresh the dcnstrct MCP connection, then continue the same Bob task with docs/bob-tasks/02c-analysis-corrections.md. No server restart, scaffolding or application edits. Save an updated task consumption summary after the continuation; proceed to UI after correction review.
 Last passing checks: `npm test` → 61/61 (38 API + 23 MCP); `npm run typecheck` → all 4 packages clean; full `npm run build` passes including Vite and MCP; `npm run smoke:mcp` passes. Vite bundle: 146.68 kB (47.20 kB gzip).
-Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Checkpoint 02 commit: (pending after this Bob task — commit once session PNG is saved).
+Baseline commit: f58da4f (harness). Checkpoint 01 commit: 6a1e7d9. Verified MCP implementation commit: 0ce32b1. Task 02B evidence and review are recorded separately; full checkpoint 02 approval awaits the focused corrections.
 Public repository: https://github.com/emmaGH1/Dcnstrct
 
 ## Runtime notes
@@ -113,7 +113,7 @@ save_analysis(analysis=<JSON string matching AnalysisSchema>)
 
 ## Gaps at checkpoint 02 exit
 
-- No Bob MCP session yet; analysis unavailable. Genuine session is the next action.
+- Bob has saved both draft analyses through MCP; current revisions and persisted outcomes match. Draft copy/provenance corrections and successful Bob get_source calls remain. Screenshot inspected; 35.14 Bobcoins recorded across tasks, approximately 4.86 left if no other usage.
 - UI is a minimal functional scaffold (raw event table). Checkpoint 03 deliverable.
 - Visitor reset is now run-scoped (Finding 4 resolved); global reset still accessible in dev/demo.
 
